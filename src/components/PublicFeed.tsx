@@ -3,6 +3,7 @@ import type { Complaint, ComplaintCategory, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { toggleUpvoteComplaint } from '../lib/firebase';
+import { ComplaintImage } from './ComplaintImage';
 import {
   Sparkles,
   PlusCircle,
@@ -197,36 +198,24 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
               return (
                 <div
                   key={comp.complaintId}
-                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all flex flex-col group"
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all flex flex-col group h-full"
                 >
-                  {/* Photo Container */}
-                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                    <img
-                      src={comp.photoUrl}
-                      alt={comp.description}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                  {/* Photo Container - Dedicated, non-collapsible banner */}
+                  <ComplaintImage
+                    src={comp.photoUrl}
+                    alt={comp.description}
+                    category={comp.category}
+                    status={comp.status}
+                    priorityScore={comp.priorityScore}
+                    containerClassName="w-full h-52 sm:h-56 relative shrink-0 block bg-slate-100 overflow-hidden"
+                  />
 
-                    {/* Status Pill Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md ${statusInfo?.bgColor}`}>
-                        {statusInfo?.label}
-                      </span>
-                    </div>
-
-                    {/* Priority score badge */}
-                    <div className="absolute top-3 right-3">
-                      <span className="px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white font-mono text-[11px] font-bold border border-white/20">
-                        Priority {comp.priorityScore}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className={`px-2 py-0.5 rounded text-[11px] font-semibold border ${catInfo?.badgeColor}`}>
+                  {/* Body Content - Strictly Positioned Below Photo with zero overlap */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4 bg-white">
+                    <div className="space-y-3">
+                      {/* Meta Tags Row */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`px-2.5 py-0.5 rounded text-[11px] font-semibold border ${catInfo?.badgeColor}`}>
                           {catInfo?.label || comp.category}
                         </span>
                         <span className="text-[11px] font-mono text-slate-400">
@@ -234,10 +223,12 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                         </span>
                       </div>
 
-                      <h3 className="font-bold text-slate-900 text-sm line-clamp-2">
+                      {/* Complaint Description Title */}
+                      <h3 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
                         {comp.description}
                       </h3>
 
+                      {/* Address info */}
                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
                         <MapPin size={13} className="text-slate-400 shrink-0" />
                         <span className="truncate">{comp.location.address}</span>
@@ -245,8 +236,8 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
 
                       {/* AI classification description snippet */}
                       {comp.aiClassification?.aiDescription && (
-                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px] text-slate-600 flex items-start gap-1.5">
-                          <Sparkles size={13} className="text-blue-600 shrink-0 mt-0.5" />
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11px] text-slate-600 flex items-start gap-2">
+                          <Sparkles size={14} className="text-blue-600 shrink-0 mt-0.5" />
                           <span className="italic line-clamp-2">
                             "{comp.aiClassification.aiDescription}"
                           </span>
@@ -256,10 +247,11 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
 
                     {/* Footer / Actions */}
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-slate-400">
+                      <span className="text-slate-400 text-[11px]">
                         {new Date(comp.createdAt).toLocaleDateString(undefined, {
                           month: 'short',
-                          day: 'numeric'
+                          day: 'numeric',
+                          year: 'numeric'
                         })}
                       </span>
 
@@ -267,7 +259,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                         onClick={() => handleUpvote(comp.complaintId)}
                         className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors shadow-xs ${
                           hasUpvoted
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-blue-600 text-white shadow-blue-600/20'
                             : 'bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700'
                         }`}
                       >
@@ -285,3 +277,4 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
     </div>
   );
 };
+

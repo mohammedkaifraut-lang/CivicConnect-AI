@@ -50,8 +50,8 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     reporterName: 'Sarah Lin',
     reporterCitizenId: 'BXWP9302',
     category: 'water_leak',
-    description: 'High pressure municipal water pipeline leaking clean water across sidewalk and flooding corner curb.',
-    photoUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=800&q=80',
+    description: 'Clogged storm drain and broken underground pipe valve causing hazardous street flooding and sidewalk overflow.',
+    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
     location: {
       lat: 37.7833,
       lng: -122.4167,
@@ -60,16 +60,16 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     },
     aiClassification: {
       label: 'water_leak',
-      confidence: 0.99,
-      aiDescription: 'Critical water main leak with visible surface runoff and potential undermining of sidewalk slab.',
-      severity: 'critical',
-      tags: ['pipe-burst', 'water-waste', 'urgent-remediation'],
+      confidence: 0.97,
+      aiDescription: 'Severe storm drainage overflow and underground pipe seepage causing pooled water along road curb and pedestrian crossing.',
+      severity: 'high',
+      tags: ['drainage-overflow', 'street-flooding', 'pedestrian-safety'],
       suggestedDepartment: 'Municipal Water & Sewerage Board'
     },
-    priorityScore: 95,
+    priorityScore: 88,
     status: 'in_progress',
     assignedDepartment: 'Municipal Water & Sewerage Board',
-    adminRemarks: 'Emergency hydraulic team on-site isolating Section 4 valve.',
+    adminRemarks: 'Drainage crew unblocking storm runoff grate and inspecting valve.',
     upvotes: ['seed-citizen-2', 'seed-citizen-1', 'seed-citizen-4', 'seed-citizen-5'],
     citizenConfirmedResolution: null,
     createdAt: new Date(Date.now() - 86400000 * 1.2).toISOString(),
@@ -77,8 +77,8 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     statusTimeline: [
       { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 1.2).toISOString(), remarks: 'Reported by Citizen BXWP9302' },
       { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 1.0).toISOString(), remarks: 'Water board alert raised' },
-      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.7).toISOString(), remarks: 'Dispatched emergency squad #9' },
-      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Excavation and valve replacement underway' }
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.7).toISOString(), remarks: 'Dispatched emergency drainage squad #9' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Grate clearance and valve inspection underway' }
     ]
   },
   {
@@ -120,36 +120,38 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
   {
     complaintId: 'seed-street-04',
     reportedBy: 'seed-citizen-4',
-    reporterName: 'Elena Rostova',
-    reporterCitizenId: 'TYRE4419',
+    reporterName: 'David Chen',
+    reporterCitizenId: 'ELUM8820',
     category: 'streetlight',
-    description: 'Streetlight pole #SL-408 has dark broken lamp, creating pitch black blindspot near school pedestrian crossing.',
-    photoUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
+    description: 'Major intersection traffic signal and overhead luminaire blacked out, causing severe vehicle congestion and pedestrian hazards.',
+    photoUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
     location: {
       lat: 37.7880,
       lng: -122.4080,
-      address: '350 Bush St, Financial Corridor',
+      address: 'Columbus Ave & Broadway Junction',
       city: 'Metro Central'
     },
     aiClassification: {
       label: 'streetlight',
-      confidence: 0.93,
-      aiDescription: 'Non-functional street light luminaire resulting in public safety visibility compromise.',
-      severity: 'medium',
-      tags: ['lighting-outage', 'pedestrian-safety', 'electrical'],
+      confidence: 0.99,
+      aiDescription: 'Critical municipal intersection traffic signal & overhead luminaire blackout creating acute vehicular collision and pedestrian crossing risk.',
+      severity: 'critical',
+      tags: ['signal-outage', 'traffic-hazard', 'overhead-lighting', 'urgent-dispatch'],
       suggestedDepartment: 'Electrical Engineering & Street Lighting'
     },
-    priorityScore: 72,
-    status: 'verified',
+    priorityScore: 94,
+    status: 'in_progress',
     assignedDepartment: 'Electrical Engineering & Street Lighting',
-    adminRemarks: 'Electrical engineering queue ticket #EE-302.',
-    upvotes: ['seed-citizen-4'],
+    adminRemarks: 'Emergency traffic management and electrical squad deployed with temporary generator.',
+    upvotes: ['seed-citizen-4', 'seed-citizen-1', 'seed-citizen-2'],
     citizenConfirmedResolution: null,
     createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(),
     statusTimeline: [
-      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.5).toISOString(), remarks: 'Logged by citizen TYRE4419' },
-      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Grid sensor confirmation verified outage' }
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.5).toISOString(), remarks: 'Logged by citizen ELUM8820 via Mobile App' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.3).toISOString(), remarks: 'Traffic Control Center confirmed junction circuit failure' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Rapid response electrical team dispatched' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.1).toISOString(), remarks: 'Technicians on site rebooting controller board' }
     ]
   },
   {

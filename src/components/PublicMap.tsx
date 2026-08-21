@@ -3,6 +3,7 @@ import type { Complaint, ComplaintCategory, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { toggleUpvoteComplaint } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { ComplaintImage } from './ComplaintImage';
 import { MapPin, ThumbsUp, Filter, Layers, CheckCircle2, AlertCircle, Sparkles, X } from 'lucide-react';
 import L from 'leaflet';
 
@@ -230,9 +231,13 @@ export const PublicMap: React.FC<PublicMapProps> = ({ complaints, onSelectCompla
             </div>
 
             <div className="flex gap-3 mb-3">
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 shrink-0">
-                <img src={activeComplaint.photoUrl} alt="Reported" className="w-full h-full object-cover" />
-              </div>
+              <ComplaintImage
+                src={activeComplaint.photoUrl}
+                alt="Reported"
+                category={activeComplaint.category}
+                showBadges={false}
+                containerClassName="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 shrink-0 relative"
+              />
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-blue-700 uppercase block">
                   {CATEGORY_CONFIG[activeComplaint.category]?.label}

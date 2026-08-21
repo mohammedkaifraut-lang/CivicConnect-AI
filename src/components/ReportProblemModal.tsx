@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, calculatePriorityScore, findNearbyDuplicates, toggleUpvoteComplaint } from '../lib/firebase';
+import { db, calculatePriorityScore, findNearbyDuplicates, toggleUpvoteComplaint, uploadComplaintPhoto, compressImage } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import type { Complaint, ComplaintCategory, AIClassification } from '../types';
 import { CATEGORY_CONFIG, DEPARTMENTS } from '../types';
+import { ComplaintImage } from './ComplaintImage';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -42,16 +43,16 @@ const SAMPLE_CIVIC_PHOTOS = [
     description: 'Uncollected refuse overflowing into pedestrian sidewalk causing obstruction'
   },
   {
-    name: 'Broken Streetlight Post',
+    name: 'Intersection Traffic Signal & Luminaire Blackout',
     category: 'streetlight' as ComplaintCategory,
-    url: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
-    description: 'Streetlight pole dark for 3 nights creating dangerous blind spot'
+    url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+    description: 'Major intersection traffic signal and overhead luminaire blacked out, causing severe vehicle congestion and pedestrian hazards'
   },
   {
-    name: 'Water Main Leak',
+    name: 'Storm Drain & Pipe Leak',
     category: 'water_leak' as ComplaintCategory,
-    url: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=800&q=80',
-    description: 'High pressure municipal water pipeline leaking clean water across roadway'
+    url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
+    description: 'Clogged storm drain and broken underground pipe valve causing street flooding and sidewalk overflow'
   },
   {
     name: 'Damaged Public Facility',
@@ -70,6 +71,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const { currentUser, userProfile } = useAuth();
   
   const [photoUrl, setPhotoUrl] = useState<string>(SAMPLE_CIVIC_PHOTOS[0].url);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<ComplaintCategory>('pothole');
@@ -90,6 +92,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const [upvotedExisting, setUpvotedExisting] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,21 +135,31 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      setPhotoBase64(base64);
-      setPhotoUrl(base64);
-      runAiClassification(base64, base64, description);
-    };
-    reader.readAsDataURL(file);
+    setUploadedFile(file);
+
+    try {
+      const { dataUrl } = await compressImage(file, 1280, 960, 0.85);
+      setPhotoBase64(dataUrl);
+      setPhotoUrl(dataUrl);
+      runAiClassification(dataUrl, dataUrl, description);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setPhotoBase64(base64);
+        setPhotoUrl(base64);
+        runAiClassification(base64, base64, description);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSelectSample = (sample: typeof SAMPLE_CIVIC_PHOTOS[0]) => {
+    setUploadedFile(null);
     setPhotoUrl(sample.url);
     setPhotoBase64(null);
     setDescription(sample.description);
@@ -216,9 +229,19 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
     }
 
     setIsSubmitting(true);
+    setUploadStatusText('Uploading evidence photo...');
     setError(null);
 
     try {
+      // 1. Upload photo to Firebase Storage (or use verified URL)
+      let finalPhotoUrl = photoUrl || SAMPLE_CIVIC_PHOTOS[0].url;
+      if (uploadedFile || photoBase64) {
+        setUploadStatusText('Saving photo to Firebase Storage...');
+        finalPhotoUrl = await uploadComplaintPhoto(uploadedFile || photoBase64 || photoUrl, currentUser.uid);
+      }
+
+      setUploadStatusText('Registering complaint in municipal database...');
+
       const dept = CATEGORY_CONFIG[category].defaultDepartment;
       const isDup = !!selectedDuplicate;
       const calculatedScore = calculatePriorityScore(
@@ -236,7 +259,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
         reporterCitizenId: userProfile?.citizenId || 'CITIZEN',
         category,
         description: description.trim(),
-        photoUrl: photoUrl || SAMPLE_CIVIC_PHOTOS[0].url,
+        photoUrl: finalPhotoUrl,
         location: {
           lat,
           lng,
@@ -288,6 +311,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
       setError(err.message || 'Failed to submit report. Please try again.');
     } finally {
       setIsSubmitting(false);
+      setUploadStatusText('');
     }
   };
 
@@ -346,6 +370,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                     <img
                       src={photoUrl}
                       alt="Civic Issue"
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -393,7 +418,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                       }`}
                       title={sample.name}
                     >
-                      <img src={sample.url} alt={sample.name} className="w-full h-full object-cover" />
+                      <img src={sample.url} alt={sample.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                       {photoUrl === sample.url && (
                         <div className="absolute bottom-0 inset-x-0 bg-blue-600 text-white text-[9px] py-0.5 text-center font-bold">
                           ✓
@@ -600,7 +625,10 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
             >
               {isSubmitting ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs">{uploadStatusText || 'Submitting...'}</span>
+                </div>
               ) : (
                 <>
                   <span>Submit to City Authority</span>

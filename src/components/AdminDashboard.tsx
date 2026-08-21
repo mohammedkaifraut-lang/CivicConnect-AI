@@ -4,6 +4,7 @@ import { db } from '../lib/firebase';
 import { doc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import type { Complaint, ComplaintStatus, ComplaintCategory, UserProfile } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG, DEPARTMENTS } from '../types';
+import { ComplaintImage } from './ComplaintImage';
 import {
   Shield,
   Filter,
@@ -361,9 +362,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
                         }`}
                       >
                         {/* Thumbnail */}
-                        <div className="w-16 h-16 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                          <img src={c.photoUrl} alt="Report" className="w-full h-full object-cover" />
-                        </div>
+                        <ComplaintImage
+                          src={c.photoUrl}
+                          alt="Report"
+                          category={c.category}
+                          showBadges={false}
+                          containerClassName="w-16 h-16 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative"
+                        />
 
                         {/* Summary */}
                         <div className="flex-1 min-w-0">
@@ -436,16 +441,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Citizen Photo</span>
-                        <div className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-                          <img src={selectedComplaint.photoUrl} alt="Citizen Photo" className="w-full h-full object-cover" />
-                        </div>
+                        <ComplaintImage
+                          src={selectedComplaint.photoUrl}
+                          alt="Citizen Photo"
+                          category={selectedComplaint.category}
+                          showBadges={false}
+                          containerClassName="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative"
+                        />
                       </div>
 
                       <div>
                         <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Remediation Proof</span>
-                        <div className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
+                        <div className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center relative">
                           {resolvedPhotoUrl ? (
-                            <img src={resolvedPhotoUrl} alt="After resolution" className="w-full h-full object-cover" />
+                            <ComplaintImage
+                              src={resolvedPhotoUrl}
+                              alt="After resolution"
+                              category={selectedComplaint.category}
+                              showBadges={false}
+                              containerClassName="w-full h-full object-cover"
+                            />
                           ) : (
                             <span className="text-[10px] text-slate-400 text-center p-2">Pending resolution upload</span>
                           )}
@@ -529,7 +544,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
                                 resolvedPhotoUrl === url ? 'border-emerald-600 ring-2 ring-emerald-300' : 'border-slate-300'
                               }`}
                             >
-                              <img src={url} alt="After sample" className="w-full h-full object-cover" />
+                              <img src={url} alt="After sample" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                             </button>
                           ))}
                         </div>

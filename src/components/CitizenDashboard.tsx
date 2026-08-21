@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import type { Complaint, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { submitResolutionFeedback, toggleUpvoteComplaint } from '../lib/firebase';
+import { ComplaintImage } from './ComplaintImage';
 import {
   User,
   PlusCircle,
@@ -217,18 +218,13 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                   >
                     <div className="flex gap-4">
                       {/* Thumbnail */}
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
-                        <img
-                          src={complaint.photoUrl}
-                          alt="Reported Issue"
-                          className="w-full h-full object-cover"
-                        />
-                        {complaint.resolvedPhotoUrl && (
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1 rounded">
-                            Fixed
-                          </span>
-                        )}
-                      </div>
+                      <ComplaintImage
+                        src={complaint.photoUrl}
+                        alt={complaint.description}
+                        category={complaint.category}
+                        showBadges={false}
+                        containerClassName="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative"
+                      />
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
@@ -343,20 +339,24 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-slate-500 uppercase">1. Before (Reported)</span>
-                      <div className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-                        <img src={selectedComplaint.photoUrl} alt="Before" className="w-full h-full object-cover" />
-                      </div>
+                      <ComplaintImage
+                        src={selectedComplaint.photoUrl}
+                        alt="Before"
+                        category={selectedComplaint.category}
+                        showBadges={false}
+                        containerClassName="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative"
+                      />
                     </div>
 
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-emerald-600 uppercase">2. After (Remediated)</span>
-                      <div className="aspect-video rounded-lg overflow-hidden border border-emerald-300 bg-emerald-50">
-                        <img
-                          src={selectedComplaint.resolvedPhotoUrl || 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80'}
-                          alt="After"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      <ComplaintImage
+                        src={selectedComplaint.resolvedPhotoUrl || 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80'}
+                        alt="After"
+                        category={selectedComplaint.category}
+                        showBadges={false}
+                        containerClassName="aspect-video rounded-lg overflow-hidden border border-emerald-300 bg-emerald-50 relative"
+                      />
                     </div>
                   </div>
 
@@ -419,9 +419,13 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
                     Reported Evidence
                   </h4>
-                  <div className="aspect-video rounded-xl overflow-hidden border border-slate-200">
-                    <img src={selectedComplaint.photoUrl} alt="Complaint" className="w-full h-full object-cover" />
-                  </div>
+                  <ComplaintImage
+                    src={selectedComplaint.photoUrl}
+                    alt="Complaint"
+                    category={selectedComplaint.category}
+                    showBadges={false}
+                    containerClassName="aspect-video rounded-xl overflow-hidden border border-slate-200 relative"
+                  />
                 </div>
               )}
 
@@ -506,3 +510,4 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
     </div>
   );
 };
+
