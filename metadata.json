@@ -1,0 +1,6 @@
+{
+  "name": "CivicConnect AI",
+  "description": "Civic problem reporting and resolution platform connecting citizens with local authorities with AI classification and admin dashboard.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role management and unique Citizen ID",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "citizenId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["citizen", "admin", "department_head"] },
+        "department": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "avatarUrl": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Complaint": {
+      "title": "Complaint",
+      "description": "Citizen reported civic issue with AI classification and remediation lifecycle",
+      "type": "object",
+      "properties": {
+        "complaintId": { "type": "string" },
+        "reportedBy": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reporterCitizenId": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "resolvedPhotoUrl": { "type": "string" },
+        "priorityScore": { "type": "number" },
+        "status": { "type": "string" },
+        "assignedDepartment": { "type": "string" },
+        "adminRemarks": { "type": "string" },
+        "citizenConfirmedResolution": { "type": "boolean" },
+        "citizenFeedbackNotes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "resolvedAt": { "type": "string" }
+      },
+      "required": ["reportedBy", "category", "description", "photoUrl", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and municipal clearance roles"
+    },
+    "/complaints/{complaintId}": {
+      "schema": "Complaint",
+      "description": "Citywide civic issues, work orders, and resolution records"
+    }
+  }
+}
