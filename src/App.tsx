@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { PublicFeed } from './components/PublicFeed';
 import { PublicMap } from './components/PublicMap';
@@ -230,8 +231,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

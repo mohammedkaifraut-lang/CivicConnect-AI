@@ -9,14 +9,16 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     reporterName: 'Mohammed Kaif',
     reporterCitizenId: 'QLMT4821',
     category: 'pothole',
-    description: 'Dangerous 8-inch asphalt pothole on the eastbound lane near the intersection pedestrian crosswalk.',
+    ward: 'Ward A',
+    description: 'Dangerous 8-inch deep asphalt pothole on eastbound lane causing tire damage and sudden vehicular braking near Nigdi crosswalk.',
     photoUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
     resolvedPhotoUrl: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
     location: {
-      lat: 37.7749,
-      lng: -122.4194,
-      address: '742 Market St, Financial District',
-      city: 'Metro Central'
+      lat: 18.6538,
+      lng: 73.7707,
+      address: 'Pradhikaran Spine Road, Sector 24, Nigdi',
+      city: 'PCMC Metro',
+      ward: 'Ward A'
     },
     aiClassification: {
       label: 'pothole',
@@ -45,55 +47,20 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     ]
   },
   {
-    complaintId: 'seed-water-02',
-    reportedBy: 'seed-citizen-2',
-    reporterName: 'Sarah Lin',
-    reporterCitizenId: 'BXWP9302',
-    category: 'water_leak',
-    description: 'Clogged storm drain and broken underground pipe valve causing hazardous street flooding and sidewalk overflow.',
-    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
-    location: {
-      lat: 37.7833,
-      lng: -122.4167,
-      address: '450 Geary St, Theatre District',
-      city: 'Metro Central'
-    },
-    aiClassification: {
-      label: 'water_leak',
-      confidence: 0.97,
-      aiDescription: 'Severe storm drainage overflow and underground pipe seepage causing pooled water along road curb and pedestrian crossing.',
-      severity: 'high',
-      tags: ['drainage-overflow', 'street-flooding', 'pedestrian-safety'],
-      suggestedDepartment: 'Municipal Water & Sewerage Board'
-    },
-    priorityScore: 88,
-    status: 'in_progress',
-    assignedDepartment: 'Municipal Water & Sewerage Board',
-    adminRemarks: 'Drainage crew unblocking storm runoff grate and inspecting valve.',
-    upvotes: ['seed-citizen-2', 'seed-citizen-1', 'seed-citizen-4', 'seed-citizen-5'],
-    citizenConfirmedResolution: null,
-    createdAt: new Date(Date.now() - 86400000 * 1.2).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 0.4).toISOString(),
-    statusTimeline: [
-      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 1.2).toISOString(), remarks: 'Reported by Citizen BXWP9302' },
-      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 1.0).toISOString(), remarks: 'Water board alert raised' },
-      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.7).toISOString(), remarks: 'Dispatched emergency drainage squad #9' },
-      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Grate clearance and valve inspection underway' }
-    ]
-  },
-  {
     complaintId: 'seed-garbage-03',
     reportedBy: 'seed-citizen-3',
     reporterName: 'Carlos Ramirez',
     reporterCitizenId: 'HJKL7820',
     category: 'garbage',
-    description: 'Commercial waste bin overflowing into public sidewalk with uncollected bagged garbage for 4 days.',
+    ward: 'Ward B',
+    description: 'Uncollected commercial cardboard boxes, wet waste, and plastic refuse overflowing onto the pedestrian footpath for 4 days.',
     photoUrl: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
     location: {
-      lat: 37.7650,
-      lng: -122.4200,
-      address: '2200 Mission St, Mission District',
-      city: 'Metro Central'
+      lat: 18.6298,
+      lng: 73.7850,
+      address: 'Thergaon High Street, Near D-Mart Junction',
+      city: 'PCMC Metro',
+      ward: 'Ward B'
     },
     aiClassification: {
       label: 'garbage',
@@ -118,74 +85,274 @@ export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { comp
     ]
   },
   {
-    complaintId: 'seed-street-04',
-    reportedBy: 'seed-citizen-4',
-    reporterName: 'David Chen',
-    reporterCitizenId: 'ELUM8820',
-    category: 'streetlight',
-    description: 'Major intersection traffic signal and overhead luminaire blacked out, causing severe vehicle congestion and pedestrian hazards.',
-    photoUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+    complaintId: 'seed-water-04',
+    reportedBy: 'seed-citizen-7',
+    reporterName: 'Amit Gokhale',
+    reporterCitizenId: 'AMIT8841',
+    category: 'water_leak',
+    ward: 'Ward B',
+    description: 'High pressure municipal supply mainline pipe valve leaking continuously, flooding the service road and reducing water pressure to nearby societies.',
+    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
     location: {
-      lat: 37.7880,
-      lng: -122.4080,
-      address: 'Columbus Ave & Broadway Junction',
-      city: 'Metro Central'
+      lat: 18.6320,
+      lng: 73.7890,
+      address: 'Chinchwad Station Road, Opp. Mahavir Garden',
+      city: 'PCMC Metro',
+      ward: 'Ward B'
     },
     aiClassification: {
-      label: 'streetlight',
-      confidence: 0.99,
-      aiDescription: 'Critical municipal intersection traffic signal & overhead luminaire blackout creating acute vehicular collision and pedestrian crossing risk.',
-      severity: 'critical',
-      tags: ['signal-outage', 'traffic-hazard', 'overhead-lighting', 'urgent-dispatch'],
-      suggestedDepartment: 'Electrical Engineering & Street Lighting'
+      label: 'water_leak',
+      confidence: 0.96,
+      aiDescription: 'Sub-surface pressurized valve leak resulting in freshwater wastage and street water pooling.',
+      severity: 'high',
+      tags: ['pipe-burst', 'clean-water-loss', 'road-seepage'],
+      suggestedDepartment: 'Municipal Water & Sewerage Board'
     },
-    priorityScore: 94,
+    priorityScore: 85,
     status: 'in_progress',
-    assignedDepartment: 'Electrical Engineering & Street Lighting',
-    adminRemarks: 'Emergency traffic management and electrical squad deployed with temporary generator.',
-    upvotes: ['seed-citizen-4', 'seed-citizen-1', 'seed-citizen-2'],
+    assignedDepartment: 'Municipal Water & Sewerage Board',
+    adminRemarks: 'Excavation team isolating section to replace rusted 4-inch flange gasket.',
+    upvotes: ['seed-citizen-7', 'seed-citizen-2', 'seed-citizen-4'],
     citizenConfirmedResolution: null,
-    createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 1.1).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(),
     statusTimeline: [
-      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.5).toISOString(), remarks: 'Logged by citizen ELUM8820 via Mobile App' },
-      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.3).toISOString(), remarks: 'Traffic Control Center confirmed junction circuit failure' },
-      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Rapid response electrical team dispatched' },
-      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.1).toISOString(), remarks: 'Technicians on site rebooting controller board' }
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 1.1).toISOString(), remarks: 'Reported by citizen AMIT8841' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.8).toISOString(), remarks: 'Water board engineer confirmed pressure drop' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.5).toISOString(), remarks: 'Pipeline repair team dispatched' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Gasket replacement underway' }
     ]
   },
   {
-    complaintId: 'seed-amenity-05',
+    complaintId: 'seed-water-05',
+    reportedBy: 'seed-citizen-2',
+    reporterName: 'Sarah Lin',
+    reporterCitizenId: 'BXWP9302',
+    category: 'water_leak',
+    ward: 'Ward C',
+    description: 'Heavy industrial drain overflow and broken culvert causing 1-foot stagnant water accumulation across MIDC access road.',
+    photoUrl: 'https://images.unsplash.com/photo-1583248369069-9d91f1640fe6?auto=format&fit=crop&w=800&q=80',
+    resolvedPhotoUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.6275,
+      lng: 73.8450,
+      address: 'Bhosari MIDC T-Block, Near General Hospital Road',
+      city: 'PCMC Metro',
+      ward: 'Ward C'
+    },
+    aiClassification: {
+      label: 'water_leak',
+      confidence: 0.98,
+      aiDescription: 'Extensive roadway waterlogging and sewer drain blockage in industrial corridor.',
+      severity: 'critical',
+      tags: ['drainage-overflow', 'industrial-corridor', 'culvert-repair'],
+      suggestedDepartment: 'Municipal Water & Sewerage Board'
+    },
+    priorityScore: 92,
+    status: 'resolved',
+    assignedDepartment: 'Municipal Water & Sewerage Board',
+    adminRemarks: 'Suction jetting machine cleared main drain silt. Culvert headwall rebuilt.',
+    upvotes: ['seed-citizen-2', 'seed-citizen-1', 'seed-citizen-5'],
+    citizenConfirmedResolution: true,
+    citizenFeedbackNotes: 'Water cleared completely and road is fully dry now. Thank you!',
+    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 1.5).toISOString(),
+    resolvedAt: new Date(Date.now() - 86400000 * 1.5).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 4).toISOString(), remarks: 'Report logged' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 3.5).toISOString(), remarks: 'Severe waterlogging confirmed' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(), remarks: 'High capacity suction crew deployed' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 2.2).toISOString(), remarks: 'De-silting in progress' },
+      { status: 'resolved', timestamp: new Date(Date.now() - 86400000 * 1.5).toISOString(), remarks: 'Culvert restored and flow normalised' }
+    ]
+  },
+  {
+    complaintId: 'seed-street-06',
+    reportedBy: 'seed-citizen-8',
+    reporterName: 'Rajesh Patil',
+    reporterCitizenId: 'RJSH5193',
+    category: 'streetlight',
+    ward: 'Ward C',
+    description: 'Damaged street illumination pole tilting dangerously towards the carriageway after a truck collision, with loose overhead feeder cables.',
+    photoUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.6310,
+      lng: 73.8420,
+      address: 'Landewadi Chowk, Pune-Nashik Highway Connector',
+      city: 'PCMC Metro',
+      ward: 'Ward C'
+    },
+    aiClassification: {
+      label: 'streetlight',
+      confidence: 0.95,
+      aiDescription: 'Structural compromise to public utility pole with risk of collapse and live electrical cable hazard.',
+      severity: 'critical',
+      tags: ['pole-hazard', 'live-wire', 'traffic-danger'],
+      suggestedDepartment: 'Electrical Engineering & Street Lighting'
+    },
+    priorityScore: 95,
+    status: 'in_progress',
+    assignedDepartment: 'Electrical Engineering & Street Lighting',
+    adminRemarks: 'Crane truck on site to stabilize pole and secure power feeds.',
+    upvotes: ['seed-citizen-8', 'seed-citizen-3', 'seed-citizen-4'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 86400000 * 0.6).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.6).toISOString(), remarks: 'Urgent hazard report logged' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Emergency team verified structural damage' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.3).toISOString(), remarks: 'Emergency crane and lineman team dispatched' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.1).toISOString(), remarks: 'Pole replacement and re-wiring active' }
+    ]
+  },
+  {
+    complaintId: 'seed-pothole-08',
+    reportedBy: 'seed-citizen-9',
+    reporterName: 'Sneha Kulkarni',
+    reporterCitizenId: 'SNEH3920',
+    category: 'pothole',
+    ward: 'Ward D',
+    description: 'Subsided asphalt cave-in (approx 1.2m diameter) around newly constructed drainage inspection chamber on main roadway.',
+    photoUrl: 'https://images.unsplash.com/photo-1578983427937-26078ee3d9d3?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.6010,
+      lng: 73.7690,
+      address: 'Kokane Chowk, Pimple Saudagar Main Road',
+      city: 'PCMC Metro',
+      ward: 'Ward D'
+    },
+    aiClassification: {
+      label: 'pothole',
+      confidence: 0.96,
+      aiDescription: 'Significant asphalt sinking and rim shear failure surrounding utility manhole cover.',
+      severity: 'high',
+      tags: ['manhole-settlement', 'road-depression', 'two-wheeler-hazard'],
+      suggestedDepartment: 'Public Works & Road Infrastructure'
+    },
+    priorityScore: 82,
+    status: 'verified',
+    assignedDepartment: 'Public Works & Road Infrastructure',
+    adminRemarks: 'Barricaded area with warning reflective cones. Work order generated.',
+    upvotes: ['seed-citizen-9', 'seed-citizen-4'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 86400000 * 0.9).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.4).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.9).toISOString(), remarks: 'Reported with photo evidence' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Inspected by Ward D road engineer' }
+    ]
+  },
+  {
+    complaintId: 'seed-garbage-09',
+    reportedBy: 'seed-citizen-10',
+    reporterName: 'Aniket More',
+    reporterCitizenId: 'ANKT7712',
+    category: 'garbage',
+    ward: 'Ward E',
+    description: 'Piles of concrete demolition rubble, broken tiles, and plastic sacks dumped illegally along Shivar Garden footpath blocking walkers.',
+    photoUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.5910,
+      lng: 73.7980,
+      address: 'Shivar Garden Footpath, Rahatani-Pimple Saudagar Link',
+      city: 'PCMC Metro',
+      ward: 'Ward E'
+    },
+    aiClassification: {
+      label: 'garbage',
+      confidence: 0.93,
+      aiDescription: 'Illegal roadside construction rubble and domestic debris obstructing public walkway.',
+      severity: 'medium',
+      tags: ['construction-debris', 'illegal-dumping', 'footpath-obstruction'],
+      suggestedDepartment: 'Sanitation & Solid Waste Management'
+    },
+    priorityScore: 72,
+    status: 'reported',
+    assignedDepartment: 'Sanitation & Solid Waste Management',
+    adminRemarks: '',
+    upvotes: ['seed-citizen-10'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 86400000 * 0.4).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.4).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Report registered in sanitation queue' }
+    ]
+  },
+  {
+    complaintId: 'seed-pothole-12',
+    reportedBy: 'seed-citizen-12',
+    reporterName: 'Vikram Shinde',
+    reporterCitizenId: 'VKRM4419',
+    category: 'pothole',
+    ward: 'Ward F',
+    description: 'Extensive surface disintegration and multiple sharp potholes across 40 meters of the daily vegetable market approach road.',
+    photoUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.6780,
+      lng: 73.8430,
+      address: 'Jadhavwadi Market Road, Chikhali',
+      city: 'PCMC Metro',
+      ward: 'Ward F'
+    },
+    aiClassification: {
+      label: 'pothole',
+      confidence: 0.95,
+      aiDescription: 'Severe alligator cracking and surface aggregate loss over busy commercial transit route.',
+      severity: 'high',
+      tags: ['alligator-cracking', 'market-road', 'asphalt-deterioration'],
+      suggestedDepartment: 'Public Works & Road Infrastructure'
+    },
+    priorityScore: 81,
+    status: 'assigned',
+    assignedDepartment: 'Public Works & Road Infrastructure',
+    adminRemarks: 'Assigned to North Division road resurfacing contractor.',
+    upvotes: ['seed-citizen-12', 'seed-citizen-6'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 86400000 * 1.2).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 0.4).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 1.2).toISOString(), remarks: 'Reported by local merchant association' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.8).toISOString(), remarks: 'Field engineer completed road measurement' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.4).toISOString(), remarks: 'Resurfacing contractor issued job code' }
+    ]
+  },
+  {
+    complaintId: 'seed-garbage-13',
     reportedBy: 'seed-citizen-5',
     reporterName: 'Marcus Vance',
     reporterCitizenId: 'WXZM8812',
-    category: 'damaged_facility',
-    description: 'Vandalized transit shelter glass panel and broken public bench at central park bus stop.',
-    photoUrl: 'https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=800&q=80',
+    category: 'garbage',
+    ward: 'Ward G',
+    description: 'Public waste bin completely packed with domestic refuse spilling 10 feet onto the highway service lane, emitting foul odor.',
+    photoUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=800&q=80',
     location: {
-      lat: 37.7700,
-      lng: -122.4460,
-      address: '501 Stanyan St, Golden Gate East',
-      city: 'Metro Central'
+      lat: 18.5800,
+      lng: 73.8250,
+      address: 'Old Pune-Mumbai Highway, Near Dapodi CME Gate',
+      city: 'PCMC Metro',
+      ward: 'Ward G'
     },
     aiClassification: {
-      label: 'damaged_facility',
-      confidence: 0.91,
-      aiDescription: 'Structural vandalism to transit amenity with shattered tempered glass hazard.',
-      severity: 'medium',
-      tags: ['transit-amenity', 'broken-facility', 'public-parks'],
-      suggestedDepartment: 'Parks & Public Amenities Division'
+      label: 'garbage',
+      confidence: 0.94,
+      aiDescription: 'Severe roadside container spillage and organic waste decomposition.',
+      severity: 'high',
+      tags: ['highway-spillage', 'sanitation-alert', 'daily-sweep'],
+      suggestedDepartment: 'Sanitation & Solid Waste Management'
     },
-    priorityScore: 68,
-    status: 'reported',
-    assignedDepartment: 'Parks & Public Amenities Division',
-    adminRemarks: '',
-    upvotes: ['seed-citizen-5'],
+    priorityScore: 77,
+    status: 'in_progress',
+    assignedDepartment: 'Sanitation & Solid Waste Management',
+    adminRemarks: 'Dedicated tipper truck and sanitation squad deployed for clearance and disinfectant spray.',
+    upvotes: ['seed-citizen-5', 'seed-citizen-7'],
     citizenConfirmedResolution: null,
-    createdAt: new Date(Date.now() - 86400000 * 0.2).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 0.7).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(),
     statusTimeline: [
-      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Report registered in public queue' }
+      { status: 'reported', timestamp: new Date(Date.now() - 86400000 * 0.7).toISOString(), remarks: 'Report logged by commuter' },
+      { status: 'verified', timestamp: new Date(Date.now() - 86400000 * 0.5).toISOString(), remarks: 'Sanitation supervisor confirmed overflow' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 86400000 * 0.3).toISOString(), remarks: 'Assigned to Dapodi mobile sanitation unit' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 86400000 * 0.2).toISOString(), remarks: 'Tipper truck currently loading waste' }
     ]
   }
 ];

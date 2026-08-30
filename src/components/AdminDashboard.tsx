@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
-import { doc, updateDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import type { Complaint, ComplaintStatus, ComplaintCategory, UserProfile } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG, DEPARTMENTS } from '../types';
 import { ComplaintImage } from './ComplaintImage';
@@ -27,7 +27,8 @@ import {
   Wrench,
   AlertTriangle,
   X,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -60,6 +61,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
   const [newRemark, setNewRemark] = useState<string>('');
   const [resolvedPhotoUrl, setResolvedPhotoUrl] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Registered users state
@@ -177,6 +180,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
       setStatusMessage(`Error updating complaint: ${err.message}`);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Delete Complaint from Database
+  const handleDeleteComplaint = async () => {
+    if (!selectedComplaint) return;
+    setIsDeleting(true);
+    try {
+      const docRef = doc(db, 'complaints', selectedComplaint.complaintId);
+      await deleteDoc(docRef);
+      setSelectedComplaint(null);
+      setConfirmDelete(false);
+      setStatusMessage('Complaint permanently removed from municipal record.');
+      setTimeout(() => setStatusMessage(null), 3000);
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      setStatusMessage(`Error deleting complaint: ${err.message}`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -566,8 +589,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
 
                     <button
                       onClick={handleUpdateComplaint}
-                      disabled={isUpdating}
-                      className="w-full py-2.5 px-4 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                      disabled={isUpdating || isDeleting}
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {isUpdating ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -578,6 +601,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ complaints, onRe
                         </>
                       )}
                     </button>
+
+                    {/* Delete Action with Confirmation */}
+                    <div className="pt-2 border-t border-slate-100">
+                      {confirmDelete ? (
+                        <div className="p-3 bg-red-50 rounded-xl border border-red-200 space-y-2 animate-fade-in">
+                          <p className="text-[11px] font-semibold text-red-800 flex items-center gap-1.5">
+                            <AlertTriangle size={14} className="shrink-0 text-red-600" />
+                            <span>Permanently delete this complaint record?</span>
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={handleDeleteComplaint}
+                              disabled={isDeleting}
+                              className="flex-1 py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1"
+                            >
+                              {isDeleting ? (
+                                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Trash2 size={13} />
+                                  <span>Yes, Delete</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDelete(false)}
+                              disabled={isDeleting}
+                              className="py-1.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-all"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(true)}
+                          className="w-full py-2 px-3 text-red-600 hover:bg-red-50 text-xs font-semibold rounded-xl border border-transparent hover:border-red-200 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete Complaint Record</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (

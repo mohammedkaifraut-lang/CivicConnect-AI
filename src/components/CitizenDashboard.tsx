@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import type { Complaint, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { submitResolutionFeedback, toggleUpvoteComplaint } from '../lib/firebase';
 import { ComplaintImage } from './ComplaintImage';
+import { ResolutionCertificateModal } from './ResolutionCertificateModal';
 import {
   User,
   PlusCircle,
@@ -20,7 +22,10 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Award,
+  Star,
+  Download
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -36,10 +41,14 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
   onOpenReportModal
 }) => {
   const { userProfile, currentUser } = useAuth();
+  const { language, t } = useLanguage();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [feedbackInput, setFeedbackInput] = useState<string>('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [certificateComplaint, setCertificateComplaint] = useState<Complaint | null>(null);
+
+  const trustScore = userProfile?.trustScore ?? 85;
 
   const filteredMyComplaints = myComplaints.filter((c) => {
     if (filterStatus === 'all') return true;
@@ -104,20 +113,34 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
                   {userProfile?.name || currentUser?.displayName || 'Verified Citizen'}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1">
-                  <ShieldCheck size={13} />
-                  <span>Citizen Contributor</span>
+                
+                {/* Citizen Trust Score Badge (FEATURE 5) */}
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
+                  <Star size={13} className="text-amber-400 fill-amber-400" />
+                  <span>{trustScore >= 80 ? (language === 'mr' ? 'विश्वासू नागरिक (Trusted Reporter)' : '⭐ Trusted Reporter') : (language === 'mr' ? 'प्रमाणित नागरिक' : 'Verified Reporter')}</span>
                 </span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">{userProfile?.email}</p>
               
-              <div className="mt-3 inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                  Citizen ID:
-                </span>
-                <span className="font-mono font-bold text-amber-400 text-sm tracking-widest">
-                  {userProfile?.citizenId || 'QLMT4821'}
-                </span>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">
+                  <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                    Citizen ID:
+                  </span>
+                  <span className="font-mono font-bold text-amber-400 text-xs sm:text-sm tracking-widest">
+                    {userProfile?.citizenId || 'QLMT4821'}
+                  </span>
+                </div>
+
+                {/* Trust Score Indicator */}
+                <div className="inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">
+                  <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                    {language === 'mr' ? 'विश्वास गुण (Trust Score):' : 'Trust Score:'}
+                  </span>
+                  <span className="font-mono font-bold text-emerald-400 text-xs sm:text-sm">
+                    {trustScore}/100
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -128,7 +151,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg hover:shadow-blue-600/30 transition-all flex items-center gap-2"
             >
               <PlusCircle size={18} />
-              <span>Report a Problem</span>
+              <span>{t('hero.reportBtn')}</span>
             </button>
           </div>
         </div>
@@ -136,19 +159,27 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800">
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
-            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Submitted</span>
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
+              {language === 'mr' ? 'दाखल केलेल्या तक्रारी' : 'Submitted'}
+            </span>
             <span className="text-2xl font-bold text-white">{totalSubmitted}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
-            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">In Progress</span>
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
+              {language === 'mr' ? 'प्रगतीपथावर' : 'In Progress'}
+            </span>
             <span className="text-2xl font-bold text-amber-400">{totalActive}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
-            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Resolved</span>
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
+              {language === 'mr' ? 'निवारण झालेल्या' : 'Resolved'}
+            </span>
             <span className="text-2xl font-bold text-emerald-400">{totalResolved}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
-            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Community Upvotes</span>
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
+              {language === 'mr' ? 'नागरिक समर्थन (Upvotes)' : 'Community Upvotes'}
+            </span>
             <span className="text-2xl font-bold text-sky-400">{totalUpvotesReceived}</span>
           </div>
         </div>
@@ -161,23 +192,31 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
         <div className="lg:col-span-7 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <div>
-              <h2 className="font-bold text-slate-900 text-lg">My Submitted Complaints</h2>
-              <p className="text-xs text-slate-500">Live municipal tracking with status timelines</p>
+              <h2 className="font-bold text-slate-900 text-lg">
+                {language === 'mr' ? 'माझ्या तक्रारींची यादी' : 'My Submitted Complaints'}
+              </h2>
+              <p className="text-xs text-slate-500">
+                {language === 'mr' ? 'थेट महानगरपालिका प्रगती व निवारण स्थिती' : 'Live municipal tracking with status timelines'}
+              </p>
             </div>
 
             {/* Filter Tabs */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-              {['all', 'active', 'resolved'].map((tab) => (
+              {[
+                { key: 'all', label: t('status.all') },
+                { key: 'active', label: language === 'mr' ? 'सक्रिय' : 'Active' },
+                { key: 'resolved', label: t('status.resolved') }
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setFilterStatus(tab)}
+                  key={tab.key}
+                  onClick={() => setFilterStatus(tab.key)}
                   className={`px-3 py-1 text-xs font-semibold rounded-md capitalize transition-all ${
-                    filterStatus === tab
+                    filterStatus === tab.key
                       ? 'bg-white text-blue-700 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
             </div>
@@ -188,15 +227,19 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
                 <PlusCircle size={24} />
               </div>
-              <h3 className="font-bold text-slate-800">No complaints in this view</h3>
+              <h3 className="font-bold text-slate-800">
+                {language === 'mr' ? 'या विभागात कोणतीही तक्रार नाही' : 'No complaints in this view'}
+              </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Spot a pothole, broken streetlight, or garbage pile? Report it now for automated AI routing to city departments.
+                {language === 'mr'
+                  ? 'रस्त्यावरील खड्डा, बंद पथदिवा किंवा कचरा आढळल्यास त्वरित फोटो काढून नोंदवा.'
+                  : 'Spot a pothole, broken streetlight, or garbage pile? Report it now for automated AI routing to city departments.'}
               </p>
               <button
                 onClick={onOpenReportModal}
                 className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl"
               >
-                Submit Your First Report
+                {t('hero.reportBtn')}
               </button>
             </div>
           ) : (
@@ -228,13 +271,20 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${catInfo?.badgeColor}`}>
-                            {catInfo?.label || complaint.category}
-                          </span>
+                        <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${catInfo?.badgeColor}`}>
+                              {t(`cat.${complaint.category}`)}
+                            </span>
+                            {complaint.ward && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                {complaint.ward}
+                              </span>
+                            )}
+                          </div>
 
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold text-white capitalize ${statusInfo?.bgColor}`}>
-                            {statusInfo?.label}
+                            {t(`status.${complaint.status}`)}
                           </span>
                         </div>
 
@@ -255,10 +305,26 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                               year: 'numeric'
                             })}
                           </span>
-                          <span className="flex items-center gap-1 font-semibold text-slate-600">
-                            <ThumbsUp size={11} />
-                            {complaint.upvotes?.length || 1} upvotes
-                          </span>
+                          
+                          <div className="flex items-center gap-3">
+                            {complaint.status === 'resolved' && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCertificateComplaint(complaint);
+                                }}
+                                className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"
+                              >
+                                <Award size={12} />
+                                <span>{t('feed.certificateBtn')}</span>
+                              </button>
+                            )}
+                            <span className="flex items-center gap-1 font-semibold text-slate-600">
+                              <ThumbsUp size={11} />
+                              {complaint.upvotes?.length || 1}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -278,21 +344,21 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                    Complaint ID
+                    {language === 'mr' ? 'तक्रार आयडी' : 'Complaint ID'}
                   </span>
                   <span className="font-mono text-xs font-bold text-slate-700">
                     #{selectedComplaint.complaintId.slice(0, 10)}
                   </span>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${STATUS_CONFIG[selectedComplaint.status]?.bgColor}`}>
-                  {STATUS_CONFIG[selectedComplaint.status]?.label}
+                  {t(`status.${selectedComplaint.status}`)}
                 </span>
               </div>
 
               {/* Horizontal Status Timeline */}
               <div>
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
-                  Resolution Progress
+                  {language === 'mr' ? 'निवारण प्रगती (Progress)' : 'Resolution Progress'}
                 </h4>
                 <div className="relative flex items-center justify-between">
                   {/* Progress bar line */}
@@ -320,7 +386,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                             isCurrent ? 'text-blue-700 font-bold' : 'text-slate-500'
                           }`}
                         >
-                          {conf.label}
+                          {t(`status.${st}`)}
                         </span>
                       </div>
                     );
@@ -331,10 +397,20 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               {/* Photos View: Before vs After (If resolved) */}
               {selectedComplaint.status === 'resolved' ? (
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <ImageIcon size={14} className="text-emerald-600" />
-                    <span>Before & After Remediated Evidence</span>
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <ImageIcon size={14} className="text-emerald-600" />
+                      <span>{language === 'mr' ? 'निवारणापूर्वी व नंतरचे छायाचित्र' : 'Before & After Remediated Evidence'}</span>
+                    </h4>
+                    
+                    <button
+                      onClick={() => setCertificateComplaint(selectedComplaint)}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg flex items-center gap-1 shadow-sm"
+                    >
+                      <Award size={13} />
+                      <span>{t('feed.certificateBtn')}</span>
+                    </button>
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -364,28 +440,30 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                   <div className="bg-emerald-50/80 rounded-xl p-4 border border-emerald-200 space-y-3">
                     <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">
                       <Sparkles size={14} className="text-emerald-600" />
-                      <span>Municipal Resolution Confirmation</span>
+                      <span>{language === 'mr' ? 'नागरिक निवारण पडताळणी' : 'Municipal Resolution Confirmation'}</span>
                     </div>
 
                     {selectedComplaint.citizenConfirmedResolution === true ? (
                       <div className="p-3 bg-emerald-100/80 text-emerald-900 rounded-lg text-xs font-semibold flex items-center gap-2">
                         <CheckCircle2 size={16} className="text-emerald-700" />
-                        <span>You confirmed this resolution. Thank you for making the city better!</span>
+                        <span>{language === 'mr' ? 'तुम्ही या निवारणाची पडताळणी केली आहे. धन्यवाद!' : 'You confirmed this resolution. Thank you for making the city better!'}</span>
                       </div>
                     ) : selectedComplaint.citizenConfirmedResolution === false ? (
                       <div className="p-3 bg-red-100/80 text-red-900 rounded-lg text-xs font-semibold flex items-center gap-2">
                         <AlertCircle size={16} className="text-red-700" />
-                        <span>You flagged this issue as not properly resolved. Municipal supervisor notified.</span>
+                        <span>{language === 'mr' ? 'तुम्ही तक्रार अद्याप प्रलंबित असल्याचे चिन्हांकित केले आहे.' : 'You flagged this issue as not properly resolved. Municipal supervisor notified.'}</span>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         <p className="text-xs text-emerald-900">
-                          The municipal team marked this problem fixed. Please review the after-photo and confirm:
+                          {language === 'mr'
+                            ? 'महापालिका पथकाने हे काम पूर्ण केले आहे. कृपया फोटो तपासून पुष्टी करा:'
+                            : 'The municipal team marked this problem fixed. Please review the after-photo and confirm:'}
                         </p>
 
                         <input
                           type="text"
-                          placeholder="Optional feedback notes for the field crew..."
+                          placeholder={language === 'mr' ? 'कर्मचाऱ्यांसाठी अभिप्राय...' : 'Optional feedback notes for the field crew...'}
                           value={feedbackInput}
                           onChange={(e) => setFeedbackInput(e.target.value)}
                           className="w-full px-3 py-1.5 text-xs rounded-lg border border-emerald-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -398,7 +476,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                             className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
                           >
                             <Check size={14} />
-                            <span>Confirm Resolved</span>
+                            <span>{language === 'mr' ? 'काम पूर्ण झाले' : 'Confirm Resolved'}</span>
                           </button>
 
                           <button
@@ -407,7 +485,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                             className="py-2 px-3 bg-white hover:bg-red-50 text-red-700 border border-red-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5"
                           >
                             <X size={14} />
-                            <span>Not Actually Resolved</span>
+                            <span>{language === 'mr' ? 'काम बाकी आहे' : 'Not Resolved'}</span>
                           </button>
                         </div>
                       </div>
@@ -417,7 +495,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               ) : (
                 <div>
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                    Reported Evidence
+                    {language === 'mr' ? 'नोंदवलेला फोटो पुरावा' : 'Reported Evidence'}
                   </h4>
                   <ComplaintImage
                     src={selectedComplaint.photoUrl}
@@ -432,13 +510,19 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               {/* Details breakdown */}
               <div className="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Assigned Department:</span>
+                  <span className="text-slate-500">{language === 'mr' ? 'नियुक्त विभाग:' : 'Assigned Department:'}</span>
                   <span className="font-semibold text-slate-900">{selectedComplaint.assignedDepartment || 'Public Works'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Priority Rating:</span>
+                  <span className="text-slate-500">{language === 'mr' ? 'प्राधान्यता गुण:' : 'Priority Rating:'}</span>
                   <span className="font-mono font-bold text-blue-700">{selectedComplaint.priorityScore}/100</span>
                 </div>
+                {selectedComplaint.ward && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">{language === 'mr' ? 'प्रभाग (Ward):' : 'Municipal Ward:'}</span>
+                    <span className="font-semibold text-amber-800">{selectedComplaint.ward}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-slate-500">AI Confidence:</span>
                   <span className="font-mono font-bold text-emerald-600">
@@ -458,7 +542,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
           ) : (
             <div className="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-500 text-xs">
               <Layers size={32} className="mx-auto text-slate-300 mb-2" />
-              <p>Select any complaint from the list to view its complete resolution timeline, photos, and verification actions.</p>
+              <p>{language === 'mr' ? 'तपशील पाहण्यासाठी डावीकडील कोणत्याही तक्रारीवर क्लिक करा.' : 'Select any complaint from the list to view its complete resolution timeline, photos, and verification actions.'}</p>
             </div>
           )}
 
@@ -466,10 +550,10 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <TrendingUp size={16} className="text-blue-600" />
-              <span>Trending Civic Issues Nearby</span>
+              <span>{language === 'mr' ? 'परिसरातील इतर सक्रिय समस्या' : 'Trending Civic Issues Nearby'}</span>
             </h3>
             <p className="text-xs text-slate-500">
-              Upvote reports from fellow citizens to raise their priority score in the municipal queue.
+              {language === 'mr' ? 'इतर नागरिकांच्या तक्रारींना समर्थन (Upvote) देऊन प्राधान्य वाढवा.' : 'Upvote reports from fellow citizens to raise their priority score in the municipal queue.'}
             </p>
 
             <div className="space-y-2 pt-1">
@@ -485,7 +569,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                         {comp.description}
                       </span>
                       <span className="text-[11px] text-slate-400">
-                        {CATEGORY_CONFIG[comp.category]?.label} • {comp.location.address}
+                        {t(`cat.${comp.category}`)} • {comp.location.address}
                       </span>
                     </div>
 
@@ -507,6 +591,14 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Resolution Certificate Modal */}
+      {certificateComplaint && (
+        <ResolutionCertificateModal
+          complaint={certificateComplaint}
+          onClose={() => setCertificateComplaint(null)}
+        />
+      )}
     </div>
   );
 };

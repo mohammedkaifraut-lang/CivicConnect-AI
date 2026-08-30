@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import type { Complaint, ComplaintCategory, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { toggleUpvoteComplaint } from '../lib/firebase';
 import { ComplaintImage } from './ComplaintImage';
+import { ResolutionCertificateModal } from './ResolutionCertificateModal';
 import {
   Sparkles,
   PlusCircle,
@@ -16,7 +18,8 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
-  ShieldCheck
+  ShieldCheck,
+  Award
 } from 'lucide-react';
 
 interface PublicFeedProps {
@@ -33,9 +36,11 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
   onSelectComplaint
 }) => {
   const { currentUser, isCitizen } = useAuth();
+  const { language, t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [certificateComplaint, setCertificateComplaint] = useState<Complaint | null>(null);
 
   const filteredComplaints = complaints.filter((c) => {
     if (selectedCategory !== 'all' && c.category !== selectedCategory) return false;
@@ -45,7 +50,8 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
       const matchDesc = c.description?.toLowerCase().includes(q);
       const matchAddr = c.location?.address?.toLowerCase().includes(q);
       const matchId = c.reporterCitizenId?.toLowerCase().includes(q);
-      if (!matchDesc && !matchAddr && !matchId) return false;
+      const matchWard = c.ward?.toLowerCase().includes(q);
+      if (!matchDesc && !matchAddr && !matchId && !matchWard) return false;
     }
     return true;
   });
@@ -74,18 +80,18 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
           <div className="max-w-3xl space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs font-semibold backdrop-blur-md">
               <Sparkles size={14} className="text-yellow-400 animate-pulse" />
-              <span>Next-Gen Civic AI Intelligence & Resolution Pipeline</span>
+              <span>{t('hero.badge')}</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
-              Report Civic Issues. <br />
+              {t('hero.title1')} <br />
               <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
-                Track Direct Resolution.
+                {t('hero.title2')}
               </span>
             </h1>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
-              CivicConnect AI bridges citizens directly with city departments. Snap a photo of potholes, garbage piles, broken lights, or water leaks — our AI engine auto-classifies the issue, predicts priority, and dispatches work orders to municipal field crews.
+              {t('hero.description')}
             </p>
 
             {/* CTA Buttons */}
@@ -98,7 +104,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                 className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-xl hover:shadow-blue-600/30 transition-all flex items-center gap-2"
               >
                 <PlusCircle size={18} />
-                <span>Report a Civic Problem</span>
+                <span>{t('hero.reportCta')}</span>
               </button>
 
               {!currentUser && (
@@ -107,7 +113,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                   className="px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 transition-all flex items-center gap-2"
                 >
                   <ShieldCheck size={16} className="text-blue-400" />
-                  <span>Get Official Citizen ID</span>
+                  <span>{t('hero.citizenIdCta')}</span>
                 </button>
               )}
             </div>
@@ -116,19 +122,19 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
           {/* Quick Metrics Ribbon */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 pt-8 border-t border-slate-800/80">
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Reports</span>
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">{t('hero.totalReports')}</span>
               <span className="text-3xl font-extrabold text-white mt-1 block">{complaints.length}</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">Active Pipeline</span>
+              <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">{t('hero.activePipeline')}</span>
               <span className="text-3xl font-extrabold text-amber-400 mt-1 block">{totalInFlight}</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block">Remediated & Verified</span>
+              <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block">{t('hero.remediated')}</span>
               <span className="text-3xl font-extrabold text-emerald-400 mt-1 block">{totalResolved}</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider block">AI Classification</span>
+              <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider block">{t('hero.aiClassification')}</span>
               <span className="text-3xl font-extrabold text-sky-400 mt-1 block">98.4%</span>
             </div>
           </div>
@@ -145,7 +151,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
             <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
             <input
               type="text"
-              placeholder="Search reports by issue, street address, Citizen ID..."
+              placeholder={t('common.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -158,10 +164,10 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-700"
             >
-              <option value="all">All Categories</option>
+              <option value="all">{t('cat.all')}</option>
               {Object.keys(CATEGORY_CONFIG).map((cat) => (
                 <option key={cat} value={cat}>
-                  {CATEGORY_CONFIG[cat as ComplaintCategory].label}
+                  {t(`cat.${cat}`)}
                 </option>
               ))}
             </select>
@@ -171,10 +177,10 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-700"
             >
-              <option value="all">All Statuses</option>
+              <option value="all">{t('status.all')}</option>
               {Object.keys(STATUS_CONFIG).map((st) => (
                 <option key={st} value={st}>
-                  {STATUS_CONFIG[st as ComplaintStatus].label}
+                  {t(`status.${st}`)}
                 </option>
               ))}
             </select>
@@ -186,8 +192,8 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
           {filteredComplaints.length === 0 ? (
             <div className="col-span-full bg-white rounded-2xl p-12 text-center border border-slate-200">
               <Layers size={36} className="mx-auto text-slate-300 mb-2" />
-              <h3 className="font-bold text-slate-800">No complaints found</h3>
-              <p className="text-xs text-slate-500 mt-1">Try adjusting your filters or submit a new report.</p>
+              <h3 className="font-bold text-slate-800">{t('common.noComplaints')}</h3>
+              <p className="text-xs text-slate-500 mt-1">{t('common.adjustFilters')}</p>
             </div>
           ) : (
             filteredComplaints.map((comp) => {
@@ -200,7 +206,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                   key={comp.complaintId}
                   className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all flex flex-col group h-full"
                 >
-                  {/* Photo Container - Dedicated, non-collapsible banner */}
+                  {/* Photo Container */}
                   <ComplaintImage
                     src={comp.photoUrl}
                     alt={comp.description}
@@ -210,17 +216,25 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                     containerClassName="w-full h-52 sm:h-56 relative shrink-0 block bg-slate-100 overflow-hidden"
                   />
 
-                  {/* Body Content - Strictly Positioned Below Photo with zero overlap */}
+                  {/* Body Content */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4 bg-white">
                     <div className="space-y-3">
                       {/* Meta Tags Row */}
                       <div className="flex items-center justify-between gap-2">
                         <span className={`px-2.5 py-0.5 rounded text-[11px] font-semibold border ${catInfo?.badgeColor}`}>
-                          {catInfo?.label || comp.category}
+                          {t(`cat.${comp.category}`)}
                         </span>
-                        <span className="text-[11px] font-mono text-slate-400">
-                          Citizen #{comp.reporterCitizenId || 'QLMT4821'}
-                        </span>
+                        
+                        <div className="flex items-center gap-1.5">
+                          {comp.ward && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                              {comp.ward}
+                            </span>
+                          )}
+                          <span className="text-[11px] font-mono text-slate-400">
+                            #{comp.reporterCitizenId || 'QLMT4821'}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Complaint Description Title */}
@@ -246,7 +260,7 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                     </div>
 
                     {/* Footer / Actions */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
                       <span className="text-slate-400 text-[11px]">
                         {new Date(comp.createdAt).toLocaleDateString(undefined, {
                           month: 'short',
@@ -255,17 +269,30 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
                         })}
                       </span>
 
-                      <button
-                        onClick={() => handleUpvote(comp.complaintId)}
-                        className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors shadow-xs ${
-                          hasUpvoted
-                            ? 'bg-blue-600 text-white shadow-blue-600/20'
-                            : 'bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700'
-                        }`}
-                      >
-                        <ThumbsUp size={13} />
-                        <span>Upvote ({comp.upvotes?.length || 1})</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {comp.status === 'resolved' && (
+                          <button
+                            onClick={() => setCertificateComplaint(comp)}
+                            title={t('common.share')}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold flex items-center gap-1 text-[11px] border border-emerald-200 transition-colors"
+                          >
+                            <Award size={13} className="text-emerald-600" />
+                            <span className="hidden sm:inline">{t('common.share')}</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => handleUpvote(comp.complaintId)}
+                          className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors shadow-xs ${
+                            hasUpvoted
+                              ? 'bg-blue-600 text-white shadow-blue-600/20'
+                              : 'bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700'
+                          }`}
+                        >
+                          <ThumbsUp size={13} />
+                          <span>{t('common.upvote')} ({comp.upvotes?.length || 1})</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -274,7 +301,15 @@ export const PublicFeed: React.FC<PublicFeedProps> = ({
           )}
         </div>
       </section>
+
+      {/* Shareable Resolution Certificate Modal */}
+      <ResolutionCertificateModal
+        isOpen={!!certificateComplaint}
+        complaint={certificateComplaint}
+        onClose={() => setCertificateComplaint(null)}
+      />
     </div>
   );
 };
+
 

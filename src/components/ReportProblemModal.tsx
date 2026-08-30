@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { db, calculatePriorityScore, findNearbyDuplicates, toggleUpvoteComplaint, uploadComplaintPhoto, compressImage } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import type { Complaint, ComplaintCategory, AIClassification } from '../types';
-import { CATEGORY_CONFIG, DEPARTMENTS } from '../types';
+import type { Complaint, ComplaintCategory, AIClassification, WardId } from '../types';
+import { CATEGORY_CONFIG, DEPARTMENTS, WARDS_DATA } from '../types';
 import { ComplaintImage } from './ComplaintImage';
 import confetti from 'canvas-confetti';
 import {
@@ -19,7 +20,9 @@ import {
   RefreshCw,
   Info,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Star,
+  Building2
 } from 'lucide-react';
 
 interface ReportProblemModalProps {
@@ -69,18 +72,20 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   onReportSubmitted
 }) => {
   const { currentUser, userProfile } = useAuth();
+  const { language, t } = useLanguage();
   
   const [photoUrl, setPhotoUrl] = useState<string>(SAMPLE_CIVIC_PHOTOS[0].url);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<ComplaintCategory>('pothole');
+  const [ward, setWard] = useState<WardId>('Ward A (Nigdi-Pradhikaran)');
   const [isManualCategory, setIsManualCategory] = useState(false);
   
-  // Coordinates (defaults around metro downtown)
-  const [lat, setLat] = useState<number>(37.7749);
-  const [lng, setLng] = useState<number>(-122.4194);
-  const [address, setAddress] = useState<string>('742 Market St, Central Civic District');
+  // Coordinates (defaults around PCMC / metro downtown)
+  const [lat, setLat] = useState<number>(18.6298);
+  const [lng, setLng] = useState<number>(73.7997);
+  const [address, setAddress] = useState<string>('PCMC Main Station Road, Nigdi, Pimpri-Chinchwad');
 
   // AI Classification state
   const [isClassifying, setIsClassifying] = useState(false);
@@ -96,6 +101,9 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const trustScore = userProfile?.trustScore ?? 85;
+  const isTrustedReporter = trustScore >= 80;
+
   // Trigger GPS location capture
   useEffect(() => {
     if (isOpen) {
@@ -108,9 +116,9 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           },
           () => {
             // Default to City Center
-            setLat(37.7749 + (Math.random() - 0.5) * 0.03);
-            setLng(-122.4194 + (Math.random() - 0.5) * 0.03);
-            setAddress('Civic Center Plaza, Metro Blvd');
+            setLat(18.6298 + (Math.random() - 0.5) * 0.02);
+            setLng(73.7997 + (Math.random() - 0.5) * 0.02);
+            setAddress('PCMC Municipal Corporation Chowk, Pimpri');
           }
         );
       }
@@ -244,12 +252,17 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
 
       const dept = CATEGORY_CONFIG[category].defaultDepartment;
       const isDup = !!selectedDuplicate;
-      const calculatedScore = calculatePriorityScore(
+      let calculatedScore = calculatePriorityScore(
         category,
         1, // initial upvote by reporter
         isDup,
         aiResult?.severity || 'medium'
       );
+
+      // Add trusted reporter priority bonus
+      if (isTrustedReporter) {
+        calculatedScore = Math.min(100, calculatedScore + 5);
+      }
 
       const timestamp = new Date().toISOString();
 
@@ -258,13 +271,14 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
         reporterName: userProfile?.name || currentUser.displayName || 'Citizen Reporter',
         reporterCitizenId: userProfile?.citizenId || 'CITIZEN',
         category,
+        ward,
         description: description.trim(),
         photoUrl: finalPhotoUrl,
         location: {
           lat,
           lng,
-          address: address.trim() || 'Metro Area',
-          city: 'Metropolitan District'
+          address: address.trim() || 'Pimpri-Chinchwad Metro Area',
+          city: 'Pimpri-Chinchwad (PCMC)'
         },
         aiClassification: aiResult || {
           label: category,
@@ -286,7 +300,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           {
             status: 'reported',
             timestamp,
-            remarks: 'Citizen submission logged in municipal registry.',
+            remarks: 'Citizen submission logged in PCMC municipal registry.',
             updatedBy: userProfile?.citizenId || 'Citizen'
           }
         ]
@@ -321,7 +335,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
     1,
     !!selectedDuplicate,
     aiResult?.severity || 'medium'
-  );
+  ) + (isTrustedReporter ? 5 : 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
@@ -334,9 +348,19 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="font-bold text-lg leading-tight">Report a Civic Problem</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg leading-tight">
+                  {language === 'mr' ? 'नागरी समस्या नोंदवा' : 'Report a Civic Problem'}
+                </h2>
+                {isTrustedReporter && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
+                    <Star size={11} className="fill-amber-400" />
+                    <span>Trusted Reporter</span>
+                  </span>
+                )}
+              </div>
               <p className="text-slate-400 text-xs">
-                AI automated classification & direct municipal resolution dispatch
+                {language === 'mr' ? 'एआय स्वयंचलित वर्गीकरण व थेट मनपा प्रभाग निवारण' : 'AI automated classification & direct PCMC ward resolution dispatch'}
               </p>
             </div>
           </div>
@@ -359,7 +383,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           {/* 1. Photo Evidence Section */}
           <div>
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-              1. Photo Evidence
+              {language === 'mr' ? '१. समस्येचे छायाचित्र पुरावा' : '1. Photo Evidence'}
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -380,7 +404,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                         className="px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-900 text-xs font-semibold shadow-md flex items-center gap-1.5"
                       >
                         <Upload size={14} />
-                        <span>Change Photo</span>
+                        <span>{language === 'mr' ? 'फोटो बदला' : 'Change Photo'}</span>
                       </button>
                     </div>
                   </>
@@ -403,7 +427,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               {/* Sample Photo Pickers for Fast Testing */}
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-slate-500 block">
-                  Quick Sample Civic Photos:
+                  {language === 'mr' ? 'नमुना चाचणी छायाचित्रे:' : 'Quick Sample Civic Photos:'}
                 </span>
                 <div className="grid grid-cols-5 gap-1.5">
                   {SAMPLE_CIVIC_PHOTOS.map((sample, idx) => (
@@ -434,7 +458,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                   className="w-full mt-2 py-2 px-3 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-2"
                 >
                   <Upload size={14} />
-                  <span>Upload from Device / Camera</span>
+                  <span>{language === 'mr' ? 'कॅमेऱ्यातून थेट फोटो अपलोड करा' : 'Upload from Device / Camera'}</span>
                 </button>
               </div>
             </div>
@@ -446,7 +470,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-blue-600" />
                 <span className="text-xs font-bold text-blue-950 uppercase tracking-wider">
-                  Gemini AI Problem Analysis
+                  {language === 'mr' ? 'जेमिनी एआय विश्लेषण (AI Problem Analysis)' : 'Gemini AI Problem Analysis'}
                 </span>
               </div>
               {isClassifying && (
@@ -461,9 +485,9 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between bg-white/80 rounded-lg p-2.5 border border-blue-100">
                   <div>
-                    <span className="text-slate-500 text-[11px] block">Detected Category</span>
+                    <span className="text-slate-500 text-[11px] block">{language === 'mr' ? 'ओळखलेली वर्गवारी' : 'Detected Category'}</span>
                     <span className="font-bold text-slate-900 capitalize text-sm">
-                      {CATEGORY_CONFIG[aiResult.label]?.label || aiResult.label}
+                      {t(`cat.${aiResult.label}`) || CATEGORY_CONFIG[aiResult.label]?.label || aiResult.label}
                     </span>
                   </div>
                   <div className="text-right">
@@ -490,11 +514,11 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
             )}
           </div>
 
-          {/* 3. Category & Description */}
+          {/* 3. Category & PCMC Ward Selector */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-                Category
+                {language === 'mr' ? 'समस्येचा प्रकार (Category)' : 'Category'}
               </label>
               <select
                 value={category}
@@ -506,39 +530,58 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               >
                 {(Object.keys(CATEGORY_CONFIG) as ComplaintCategory[]).map((catKey) => (
                   <option key={catKey} value={catKey}>
-                    {CATEGORY_CONFIG[catKey].label}
+                    {t(`cat.${catKey}`)}
                   </option>
                 ))}
               </select>
             </div>
 
+            {/* PCMC Ward Selector (FEATURE 2) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-                Location / Address
+              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <Building2 size={13} className="text-blue-600" />
+                <span>{language === 'mr' ? 'प्रभाग निवडा (PCMC Ward)' : 'PCMC Ward'}</span>
               </label>
-              <div className="relative">
-                <MapPin size={15} className="absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Street name or landmark..."
-                  className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <select
+                value={ward}
+                onChange={(e) => setWard(e.target.value as WardId)}
+                className="w-full py-2 px-3 text-sm rounded-xl border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {WARDS_DATA.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {language === 'mr' ? `${w.marathiName} (${w.id.split(' ')[1]})` : w.id}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-              Description & Details
+              {language === 'mr' ? 'स्थान व पत्ता' : 'Location / Address'}
+            </label>
+            <div className="relative">
+              <MapPin size={15} className="absolute left-3 top-3 text-slate-400" />
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Street name or landmark..."
+                className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
+              {language === 'mr' ? 'तपशील व वर्णन' : 'Description & Details'}
             </label>
             <textarea
               required
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the issue, size, potential danger, or landmark..."
+              placeholder={language === 'mr' ? 'समस्येचे स्वरूप, संभाव्य धोका किंवा खुणा स्पष्ट करा...' : 'Describe the issue, size, potential danger, or landmark...'}
               className="w-full p-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -595,11 +638,13 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           )}
 
           {/* 5. Priority Score Preview */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 text-xs">
+          <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-100 text-xs">
             <div>
-              <span className="text-slate-500 block text-[11px]">Calculated Priority Index:</span>
-              <span className="font-bold text-slate-800 text-sm">
-                Category Base ({CATEGORY_CONFIG[category].baseWeight}) + AI Severity Bonus
+              <span className="text-slate-500 block text-[11px]">
+                {language === 'mr' ? 'गणना केलेले प्राधान्य मूल्य:' : 'Calculated Priority Index:'}
+              </span>
+              <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                Category Base ({CATEGORY_CONFIG[category].baseWeight}) + AI Severity {isTrustedReporter && '+ ⭐ Trusted Citizen (+5)'}
               </span>
             </div>
             <div className="text-right">
@@ -631,7 +676,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                 </div>
               ) : (
                 <>
-                  <span>Submit to City Authority</span>
+                  <span>{language === 'mr' ? 'तक्रार मनपा कडे पाठवा' : 'Submit to City Authority'}</span>
                   <ArrowRight size={16} />
                 </>
               )}
@@ -642,3 +687,4 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
     </div>
   );
 };
+

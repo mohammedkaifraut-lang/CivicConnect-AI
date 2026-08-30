@@ -10,6 +10,128 @@ export interface UserProfile {
   createdAt: string;
   avatarUrl?: string;
   phone?: string;
+  trustScore?: number; // 0 - 100, base 50. >= 80 awards "Trusted Reporter" badge
+}
+
+export type WardId =
+  | 'Ward A'
+  | 'Ward B'
+  | 'Ward C'
+  | 'Ward D'
+  | 'Ward E'
+  | 'Ward F'
+  | 'Ward G'
+  | 'Ward H';
+
+export interface WardInfo {
+  id: WardId;
+  name: string;
+  marathiName: string;
+  headquarters: string;
+  areas: string[];
+  wardOfficer: string;
+  centerLat: number;
+  centerLng: number;
+}
+
+export const WARDS_DATA: WardInfo[] = [
+  {
+    id: 'Ward A',
+    name: 'Ward A (Nigdi - Pradhikaran - Akurdi)',
+    marathiName: 'प्रभाग अ (निगडी - प्राधिकरण - आकुर्डी)',
+    headquarters: 'Nigdi Sector 24 Ward Office',
+    areas: ['Nigdi', 'Pradhikaran', 'Akurdi', 'Yamunanagar'],
+    wardOfficer: 'Executive Engineer R. S. Kulkarni',
+    centerLat: 18.6538,
+    centerLng: 73.7707
+  },
+  {
+    id: 'Ward B',
+    name: 'Ward B (Chinchwad - Thergaon - Kalewadi)',
+    marathiName: 'प्रभाग ब (चिंचवड - थेरगाव - काळेवाडी)',
+    headquarters: 'Chinchwad Station Road Office',
+    areas: ['Chinchwad Gaon', 'Thergaon', 'Kalewadi', 'Bijlinagar'],
+    wardOfficer: 'Executive Engineer S. P. Deshmukh',
+    centerLat: 18.6298,
+    centerLng: 73.7850
+  },
+  {
+    id: 'Ward C',
+    name: 'Ward C (Bhosari - Indrayaninagar - Landewadi)',
+    marathiName: 'प्रभाग क (भोसरी - इंद्रायणीनगर - लांडेवाडी)',
+    headquarters: 'Bhosari MIDC Admin Bhavan',
+    areas: ['Bhosari Gaon', 'Indrayaninagar', 'Landewadi', 'Dighi Road'],
+    wardOfficer: 'Executive Engineer V. M. Shinde',
+    centerLat: 18.6275,
+    centerLng: 73.8450
+  },
+  {
+    id: 'Ward D',
+    name: 'Ward D (Wakad - Pimple Saudagar - Pimple Nilakh)',
+    marathiName: 'प्रभाग ड (वाकड - पिंपळे सौदागर - पिंपळे निलख)',
+    headquarters: 'Wakad Kaspate Vasti Ward Office',
+    areas: ['Wakad', 'Pimple Saudagar', 'Pimple Nilakh', 'Kaspate Vasti'],
+    wardOfficer: 'Executive Engineer A. B. Joshi',
+    centerLat: 18.5985,
+    centerLng: 73.7650
+  },
+  {
+    id: 'Ward E',
+    name: 'Ward E (Rahatani - Pimple Gurav - Sangvi Link)',
+    marathiName: 'प्रभाग इ (रहाटणी - पिंपळे गुरव - नवी सांगवी)',
+    headquarters: 'Rahatani Phata Administrative Centre',
+    areas: ['Rahatani', 'Pimple Gurav', 'Saudagar Extension', 'Shivar Garden'],
+    wardOfficer: 'Executive Engineer N. K. Patil',
+    centerLat: 18.5910,
+    centerLng: 73.7980
+  },
+  {
+    id: 'Ward F',
+    name: 'Ward F (Chikhali - Moshi - Charholi)',
+    marathiName: 'प्रभाग फ (चिखली - मोशी - चऱ्होली)',
+    headquarters: 'Moshi Alandi Road Ward Office',
+    areas: ['Chikhali', 'Moshi Toll Naka', 'Charholi', 'Jadhavwadi'],
+    wardOfficer: 'Executive Engineer P. G. Gaikwad',
+    centerLat: 18.6750,
+    centerLng: 73.8400
+  },
+  {
+    id: 'Ward G',
+    name: 'Ward G (Old Sangvi - Dapodi - Phugewadi)',
+    marathiName: 'प्रभाग ग (जुनी सांगवी - दापोडी - फुगेवाडी)',
+    headquarters: 'Dapodi CME Gate Admin Office',
+    areas: ['Old Sangvi', 'Dapodi', 'Phugewadi', 'Kasarwadi'],
+    wardOfficer: 'Executive Engineer M. T. More',
+    centerLat: 18.5800,
+    centerLng: 73.8250
+  },
+  {
+    id: 'Ward H',
+    name: 'Ward H (Tathawade - Punawale - Ravet)',
+    marathiName: 'प्रभाग ह (ताथवडे - पुनावळे - रावेत)',
+    headquarters: 'Ravet BRTS Terminal Office',
+    areas: ['Tathawade', 'Punawale', 'Ravet', 'Kiwale'],
+    wardOfficer: 'Executive Engineer S. V. Jagtap',
+    centerLat: 18.6410,
+    centerLng: 73.7450
+  }
+];
+
+export interface PredictiveHotspot {
+  id: string;
+  category: ComplaintCategory;
+  title: string;
+  marathiTitle: string;
+  riskLevel: 'critical' | 'high' | 'medium';
+  complaintCount: number;
+  centerLat: number;
+  centerLng: number;
+  radiusMeters: number;
+  affectedWard: WardId;
+  description: string;
+  marathiDescription: string;
+  recommendedAction: string;
+  marathiRecommendedAction: string;
 }
 
 export type ComplaintCategory =
@@ -31,6 +153,7 @@ export interface ComplaintLocation {
   lng: number;
   address: string;
   city?: string;
+  ward?: WardId;
 }
 
 export interface AIClassification {
@@ -55,6 +178,7 @@ export interface Complaint {
   reporterName?: string;
   reporterCitizenId?: string;
   category: ComplaintCategory;
+  ward?: WardId;
   description: string;
   photoUrl: string;
   resolvedPhotoUrl?: string;
