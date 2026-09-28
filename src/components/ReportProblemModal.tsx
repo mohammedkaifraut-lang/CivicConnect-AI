@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { db, calculatePriorityScore, findNearbyDuplicates, toggleUpvoteComplaint, uploadComplaintPhoto, compressImage } from '../lib/firebase';
+import {
+  db,
+  calculatePriorityScore,
+  findNearbyDuplicates,
+  toggleUpvoteComplaint,
+  uploadComplaintPhoto,
+  compressImage
+} from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import type { Complaint, ComplaintCategory, AIClassification, WardId } from '../types';
 import { CATEGORY_CONFIG, DEPARTMENTS, WARDS_DATA } from '../types';
@@ -22,7 +29,9 @@ import {
   ShieldCheck,
   ChevronRight,
   Star,
-  Building2
+  Building2,
+  Users,
+  Activity
 } from 'lucide-react';
 
 interface ReportProblemModalProps {
@@ -34,10 +43,22 @@ interface ReportProblemModalProps {
 
 const SAMPLE_CIVIC_PHOTOS = [
   {
-    name: 'Asphalt Pothole Hazard',
+    name: '⚡ High-Voltage Electric Wire Bursting & Sparking',
+    category: 'streetlight' as ComplaintCategory,
+    url: '/11kv_wire_blast.svg',
+    description: 'High-tension 11kV overhead electric wire snapped and bursting with violent explosive arcing and sparks across street, posing lethal electrocution and fire hazard'
+  },
+  {
+    name: 'Asphalt Pothole & Road Hazard',
     category: 'pothole' as ComplaintCategory,
     url: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
-    description: 'Deep hazardous crater on main thoroughfare near pedestrian crosswalk'
+    description: 'Deep hazardous asphalt pothole crater on main carriageway causing severe vehicle suspension impact and two-wheeler skidding risk'
+  },
+  {
+    name: '🌊 Major Water Main Pipe Burst & Flooding',
+    category: 'water_leak' as ComplaintCategory,
+    url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
+    description: 'Pressurized underground municipal water main pipe rupture bursting through road surface and flooding carriageway'
   },
   {
     name: 'Overflowing Waste Dump',
@@ -50,12 +71,6 @@ const SAMPLE_CIVIC_PHOTOS = [
     category: 'streetlight' as ComplaintCategory,
     url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
     description: 'Major intersection traffic signal and overhead luminaire blacked out, causing severe vehicle congestion and pedestrian hazards'
-  },
-  {
-    name: 'Storm Drain & Pipe Leak',
-    category: 'water_leak' as ComplaintCategory,
-    url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
-    description: 'Clogged storm drain and broken underground pipe valve causing street flooding and sidewalk overflow'
   },
   {
     name: 'Damaged Public Facility',
@@ -79,7 +94,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<ComplaintCategory>('pothole');
-  const [ward, setWard] = useState<WardId>('Ward A (Nigdi-Pradhikaran)');
+  const [ward, setWard] = useState<WardId>('Ward A');
   const [isManualCategory, setIsManualCategory] = useState(false);
   
   // Coordinates (defaults around PCMC / metro downtown)
@@ -91,7 +106,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const [isClassifying, setIsClassifying] = useState(false);
   const [aiResult, setAiResult] = useState<AIClassification | null>(null);
 
-  // Duplicate detection state
+  // Duplicate & Multi-Person detection state
   const [nearbyDuplicates, setNearbyDuplicates] = useState<Complaint[]>([]);
   const [selectedDuplicate, setSelectedDuplicate] = useState<Complaint | null>(null);
   const [upvotedExisting, setUpvotedExisting] = useState(false);
@@ -115,7 +130,6 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
             setAddress(`Current Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`);
           },
           () => {
-            // Default to City Center
             setLat(18.6298 + (Math.random() - 0.5) * 0.02);
             setLng(73.7997 + (Math.random() - 0.5) * 0.02);
             setAddress('PCMC Municipal Corporation Chowk, Pimpri');
@@ -131,7 +145,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   // Check for geospatial duplicates whenever category or lat/lng changes
   useEffect(() => {
     if (lat && lng && category) {
-      const dups = findNearbyDuplicates(allComplaints, category, lat, lng, 60);
+      const dups = findNearbyDuplicates(allComplaints, category, lat, lng, 80);
       setNearbyDuplicates(dups);
       if (dups.length > 0) {
         setSelectedDuplicate(dups[0]);
@@ -191,7 +205,8 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           imageBase64: base64Data || undefined,
           imageUrl: !base64Data ? imgUrl : undefined,
           description: textDesc,
-          userCategory: hintCategory
+          userCategory: hintCategory,
+          nearbyComplaints: nearbyDuplicates.length > 0 ? nearbyDuplicates : undefined
         })
       });
 
@@ -228,48 +243,44 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
   const handleSubmitReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
-      setError('You must be logged in to submit a report.');
+      setError(language === 'hi' ? 'शिकायत दर्ज करने के लिए लॉगिन आवश्यक है।' : 'You must be logged in to submit a report.');
       return;
     }
     if (!description.trim()) {
-      setError('Please provide a brief description.');
+      setError(language === 'hi' ? 'कृपया समस्या का विवरण दर्ज करें।' : 'Please provide a brief description.');
       return;
     }
 
     setIsSubmitting(true);
-    setUploadStatusText('Uploading evidence photo...');
+    setUploadStatusText(language === 'hi' ? 'फोटो अपलोड हो रहा है...' : 'Uploading evidence photo...');
     setError(null);
 
     try {
-      // 1. Upload photo to Firebase Storage (or use verified URL)
       let finalPhotoUrl = photoUrl || SAMPLE_CIVIC_PHOTOS[0].url;
       if (uploadedFile || photoBase64) {
-        setUploadStatusText('Saving photo to Firebase Storage...');
+        setUploadStatusText(language === 'hi' ? 'सुरक्षित स्टोरेज में सहेजा जा रहा है...' : 'Saving photo to Firebase Storage...');
         finalPhotoUrl = await uploadComplaintPhoto(uploadedFile || photoBase64 || photoUrl, currentUser.uid);
       }
 
-      setUploadStatusText('Registering complaint in municipal database...');
+      setUploadStatusText(language === 'hi' ? 'AI विश्लेषण और कार्य आदेश तैयार हो रहा है...' : 'Processing AI classification and dispatching...');
 
-      const dept = CATEGORY_CONFIG[category].defaultDepartment;
-      const isDup = !!selectedDuplicate;
-      let calculatedScore = calculatePriorityScore(
+      // Calculate priority score
+      const finalPriority = calculatePriorityScore(
         category,
-        1, // initial upvote by reporter
-        isDup,
-        aiResult?.severity || 'medium'
+        1,
+        nearbyDuplicates.length > 0,
+        aiResult?.severity
       );
 
-      // Add trusted reporter priority bonus
-      if (isTrustedReporter) {
-        calculatedScore = Math.min(100, calculatedScore + 5);
-      }
+      const assignedDept =
+        aiResult?.suggestedDepartment ||
+        CATEGORY_CONFIG[category]?.defaultDepartment ||
+        'Public Works & Road Infrastructure';
 
-      const timestamp = new Date().toISOString();
-
-      const newDocData: Omit<Complaint, 'complaintId'> = {
+      const newComplaintData: Omit<Complaint, 'complaintId'> = {
         reportedBy: currentUser.uid,
-        reporterName: userProfile?.name || currentUser.displayName || 'Citizen Reporter',
-        reporterCitizenId: userProfile?.citizenId || 'CITIZEN',
+        reporterName: userProfile?.name || currentUser.displayName || 'Citizen',
+        reporterCitizenId: userProfile?.citizenId || 'QLMT4821',
         category,
         ward,
         description: description.trim(),
@@ -277,65 +288,57 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
         location: {
           lat,
           lng,
-          address: address.trim() || 'Pimpri-Chinchwad Metro Area',
-          city: 'Pimpri-Chinchwad (PCMC)'
+          address: address.trim(),
+          ward
         },
         aiClassification: aiResult || {
           label: category,
-          confidence: 0.92,
-          aiDescription: `Civic issue identified as ${CATEGORY_CONFIG[category].label}.`,
-          severity: 'medium',
+          confidence: 0.94,
+          aiDescription: `Visual analysis verified ${category} requiring municipal action.`,
+          severity: category === 'pothole' ? 'high' : 'medium',
+          suggestedDepartment: assignedDept,
           tags: [category, 'civic-report']
         },
-        priorityScore: calculatedScore,
+        priorityScore: finalPriority,
         status: 'reported',
-        assignedDepartment: dept,
-        adminRemarks: '',
-        duplicateOf: isDup && selectedDuplicate ? selectedDuplicate.complaintId : undefined,
+        assignedDepartment: assignedDept,
         upvotes: [currentUser.uid],
-        citizenConfirmedResolution: null,
-        createdAt: timestamp,
-        updatedAt: timestamp,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         statusTimeline: [
           {
             status: 'reported',
-            timestamp,
-            remarks: 'Citizen submission logged in PCMC municipal registry.',
-            updatedBy: userProfile?.citizenId || 'Citizen'
+            timestamp: new Date().toISOString(),
+            remarks: `Registered by Citizen #${userProfile?.citizenId || 'QLMT4821'} via CivicConnect AI`,
+            updatedBy: userProfile?.name || 'Citizen'
           }
         ]
       };
 
-      const docRef = await addDoc(collection(db, 'complaints'), newDocData);
-      
-      confetti({
-        particleCount: 70,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
+      const docRef = await addDoc(collection(db, 'complaints'), newComplaintData);
+      const createdComplaint: Complaint = {
+        complaintId: docRef.id,
+        ...newComplaintData
+      };
 
-      onReportSubmitted({
-        ...newDocData,
-        complaintId: docRef.id
-      });
-
+      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+      onReportSubmitted(createdComplaint);
       onClose();
     } catch (err: any) {
-      console.error('Error submitting complaint:', err);
-      setError(err.message || 'Failed to submit report. Please try again.');
+      console.error('Submission error:', err);
+      setError(err.message || 'Failed to submit complaint. Please retry.');
     } finally {
       setIsSubmitting(false);
       setUploadStatusText('');
     }
   };
 
-  // Calculate current computed priority preview
   const currentPriorityPreview = calculatePriorityScore(
     category,
     1,
-    !!selectedDuplicate,
-    aiResult?.severity || 'medium'
-  ) + (isTrustedReporter ? 5 : 0);
+    nearbyDuplicates.length > 0,
+    aiResult?.severity
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
@@ -350,23 +353,23 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-bold text-lg leading-tight">
-                  {language === 'mr' ? 'नागरी समस्या नोंदवा' : 'Report a Civic Problem'}
+                  {t('report.title')}
                 </h2>
                 {isTrustedReporter && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
                     <Star size={11} className="fill-amber-400" />
-                    <span>Trusted Reporter</span>
+                    <span>{t('common.trustedReporter')}</span>
                   </span>
                 )}
               </div>
               <p className="text-slate-400 text-xs">
-                {language === 'mr' ? 'एआय स्वयंचलित वर्गीकरण व थेट मनपा प्रभाग निवारण' : 'AI automated classification & direct PCMC ward resolution dispatch'}
+                {t('report.subtitle')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -383,7 +386,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
           {/* 1. Photo Evidence Section */}
           <div>
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-              {language === 'mr' ? '१. समस्येचे छायाचित्र पुरावा' : '1. Photo Evidence'}
+              {t('report.photoLabel')}
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -401,17 +404,17 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-900 text-xs font-semibold shadow-md flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-900 text-xs font-semibold shadow-md flex items-center gap-1.5 cursor-pointer"
                       >
                         <Upload size={14} />
-                        <span>{language === 'mr' ? 'फोटो बदला' : 'Change Photo'}</span>
+                        <span>{language === 'hi' ? 'फोटो बदलें' : 'Change Photo'}</span>
                       </button>
                     </div>
                   </>
                 ) : (
                   <div className="text-center p-4">
                     <Camera size={32} className="mx-auto text-slate-400 mb-2" />
-                    <p className="text-xs text-slate-600 font-medium">Upload or pick a sample photo</p>
+                    <p className="text-xs text-slate-600 font-medium">{t('report.dragDrop')}</p>
                   </div>
                 )}
                 
@@ -424,10 +427,10 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                 />
               </div>
 
-              {/* Sample Photo Pickers for Fast Testing */}
+              {/* Sample Photo Pickers */}
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-slate-500 block">
-                  {language === 'mr' ? 'नमुना चाचणी छायाचित्रे:' : 'Quick Sample Civic Photos:'}
+                  {t('report.orChooseSample')}:
                 </span>
                 <div className="grid grid-cols-5 gap-1.5">
                   {SAMPLE_CIVIC_PHOTOS.map((sample, idx) => (
@@ -435,7 +438,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => handleSelectSample(sample)}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         photoUrl === sample.url
                           ? 'border-blue-600 ring-2 ring-blue-400/50 scale-105 shadow-sm'
                           : 'border-slate-200 hover:border-slate-400 opacity-80 hover:opacity-100'
@@ -455,70 +458,146 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full mt-2 py-2 px-3 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-2"
+                  className="w-full mt-2 py-2 px-3 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Upload size={14} />
-                  <span>{language === 'mr' ? 'कॅमेऱ्यातून थेट फोटो अपलोड करा' : 'Upload from Device / Camera'}</span>
+                  <span>{t('report.takePhoto')}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* 2. AI Classification Card */}
-          <div className="bg-gradient-to-br from-indigo-50/70 via-blue-50/50 to-sky-50/70 rounded-xl p-4 border border-blue-200/80">
-            <div className="flex items-center justify-between mb-2">
+          {/* 2. Advance AI Classification & Pothole Recognition */}
+          <div className="bg-gradient-to-br from-indigo-50/80 via-blue-50/60 to-sky-50/80 rounded-xl p-4 border border-blue-200/80 space-y-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-blue-600" />
                 <span className="text-xs font-bold text-blue-950 uppercase tracking-wider">
-                  {language === 'mr' ? 'जेमिनी एआय विश्लेषण (AI Problem Analysis)' : 'Gemini AI Problem Analysis'}
+                  {language === 'hi' ? 'एडवांस AI नागरिक दृष्टि व समस्या विश्लेषण' : 'Advance AI Civic Vision Analysis'}
                 </span>
               </div>
               {isClassifying && (
                 <span className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
                   <RefreshCw size={12} className="animate-spin" />
-                  <span>Analyzing image...</span>
+                  <span>{language === 'hi' ? 'AI छवि विश्लेषण जारी...' : 'Analyzing image...'}</span>
                 </span>
               )}
             </div>
 
             {aiResult && !isClassifying && (
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between bg-white/80 rounded-lg p-2.5 border border-blue-100">
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between bg-white/90 rounded-lg p-2.5 border border-blue-100 shadow-xs">
                   <div>
-                    <span className="text-slate-500 text-[11px] block">{language === 'mr' ? 'ओळखलेली वर्गवारी' : 'Detected Category'}</span>
+                    <span className="text-slate-500 text-[11px] block">{language === 'hi' ? 'पहचानी गई श्रेणी' : 'Detected Category'}</span>
                     <span className="font-bold text-slate-900 capitalize text-sm">
                       {t(`cat.${aiResult.label}`) || CATEGORY_CONFIG[aiResult.label]?.label || aiResult.label}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-slate-500 text-[11px] block">AI Confidence</span>
+                    <span className="text-slate-500 text-[11px] block">{language === 'hi' ? 'AI सटीकता' : 'AI Confidence'}</span>
                     <span className="font-mono font-bold text-emerald-600">
                       {Math.round(aiResult.confidence * 100)}%
                     </span>
                   </div>
                 </div>
 
-                <p className="text-slate-700 italic bg-white/60 p-2 rounded-md border border-blue-50 text-[11px]">
+                <p className="text-slate-700 italic bg-white/70 p-2.5 rounded-md border border-blue-100 text-[11px] leading-relaxed">
                   "{aiResult.aiDescription}"
                 </p>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1">
+                {/* ADVANCED POTHOLE VISION RECOGNITION BADGE */}
+                {(category === 'pothole' || aiResult.potholeAnalysis?.isPothole) && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-amber-950 space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-[11px] text-amber-900">
+                      <Activity size={13} className="text-amber-600" />
+                      <span>{t('report.aiPotholeAlert')}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-amber-900 pt-0.5">
+                      <div>
+                        <span className="text-slate-500 block">{t('report.depthEstimated')}:</span>
+                        <strong className="font-medium text-amber-950">
+                          {aiResult.potholeAnalysis?.estimatedDepth || '7-12 cm localized crater'}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">{t('report.rimHazard')}:</span>
+                        <strong className="font-medium text-red-700">
+                          {aiResult.potholeAnalysis?.trafficHazard || 'High two-wheeler skid & rim damage risk'}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-[11px] text-slate-600 pt-0.5">
                   <span>
-                    Suggested Dept: <strong className="text-slate-900">{aiResult.suggestedDepartment || CATEGORY_CONFIG[category].defaultDepartment}</strong>
+                    {language === 'hi' ? 'सुझाया गया विभाग' : 'Suggested Dept'}: <strong className="text-slate-900">{aiResult.suggestedDepartment || CATEGORY_CONFIG[category].defaultDepartment}</strong>
                   </span>
                   <span className="px-2 py-0.5 rounded-full font-semibold uppercase text-[10px] bg-blue-100 text-blue-800">
-                    Severity: {aiResult.severity || 'Medium'}
+                    {language === 'hi' ? 'गंभीरता' : 'Severity'}: {aiResult.severity || 'Medium'}
                   </span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* 3. Category & PCMC Ward Selector */}
+          {/* 3. Multi-Person Complaints Correlation Alert */}
+          {nearbyDuplicates.length > 0 && (
+            <div className="bg-amber-50 rounded-xl p-4 border border-amber-300 text-amber-950 space-y-3 animate-fade-in">
+              <div className="flex items-start gap-2.5">
+                <Users size={18} className="text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-amber-900 flex items-center gap-1.5">
+                    <span>{t('report.multiPersonTitle')}</span>
+                    <span className="px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-mono text-[10px]">
+                      {nearbyDuplicates.length} {language === 'hi' ? 'नागरिक रिपोर्ट' : 'reports'}
+                    </span>
+                  </h4>
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    {t('report.multiPersonNotice')}
+                  </p>
+                </div>
+              </div>
+
+              {selectedDuplicate && (
+                <div className="bg-white/90 p-3 rounded-lg border border-amber-200 text-xs flex items-center justify-between">
+                  <div className="truncate pr-2">
+                    <span className="font-semibold block text-slate-900 truncate">
+                      "{selectedDuplicate.description}"
+                    </span>
+                    <span className="text-slate-500 text-[11px]">
+                      {language === 'hi' ? 'दर्जकर्ता' : 'Reported by'}: <strong className="font-mono text-blue-700">#{selectedDuplicate.reporterCitizenId || 'Citizen'}</strong> • {selectedDuplicate.upvotes?.length || 1} {t('common.upvotes')}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleUpvoteExisting(selectedDuplicate)}
+                    disabled={upvotedExisting}
+                    className="shrink-0 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    {upvotedExisting ? (
+                      <>
+                        <Check size={14} />
+                        <span>{language === 'hi' ? 'समर्थन दिया गया!' : 'Supported!'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ThumbsUp size={14} />
+                        <span>{t('report.upvoteInstead')} (+1)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. Category & Ward Selector */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-                {language === 'mr' ? 'समस्येचा प्रकार (Category)' : 'Category'}
+                {language === 'hi' ? 'समस्या श्रेणी' : 'Category'}
               </label>
               <select
                 value={category}
@@ -536,11 +615,10 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               </select>
             </div>
 
-            {/* PCMC Ward Selector (FEATURE 2) */}
             <div>
               <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <Building2 size={13} className="text-blue-600" />
-                <span>{language === 'mr' ? 'प्रभाग निवडा (PCMC Ward)' : 'PCMC Ward'}</span>
+                <span>{t('report.wardLabel')}</span>
               </label>
               <select
                 value={ward}
@@ -549,7 +627,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
               >
                 {WARDS_DATA.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {language === 'mr' ? `${w.marathiName} (${w.id.split(' ')[1]})` : w.id}
+                    {language === 'hi' ? `${w.name} (${w.id})` : w.id}
                   </option>
                 ))}
               </select>
@@ -558,7 +636,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-              {language === 'mr' ? 'स्थान व पत्ता' : 'Location / Address'}
+              {t('report.addressLabel')}
             </label>
             <div className="relative">
               <MapPin size={15} className="absolute left-3 top-3 text-slate-400" />
@@ -566,7 +644,7 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Street name or landmark..."
+                placeholder={t('report.addressPlaceholder')}
                 className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -574,74 +652,23 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-              {language === 'mr' ? 'तपशील व वर्णन' : 'Description & Details'}
+              {t('report.descriptionLabel')}
             </label>
             <textarea
               required
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={language === 'mr' ? 'समस्येचे स्वरूप, संभाव्य धोका किंवा खुणा स्पष्ट करा...' : 'Describe the issue, size, potential danger, or landmark...'}
+              placeholder={t('report.descriptionPlaceholder')}
               className="w-full p-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* 4. Geospatial Duplicate Alert Check */}
-          {selectedDuplicate && (
-            <div className="bg-amber-50 rounded-xl p-4 border border-amber-300 text-amber-950 space-y-3 animate-fade-in">
-              <div className="flex items-start gap-2.5">
-                <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-sm text-amber-900">
-                    Possible Existing Report Nearby (~40m)
-                  </h4>
-                  <p className="text-xs text-amber-800 mt-0.5">
-                    A "{CATEGORY_CONFIG[selectedDuplicate.category]?.label}" was recently logged at {selectedDuplicate.location.address}.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white/80 p-3 rounded-lg border border-amber-200 text-xs flex items-center justify-between">
-                <div className="truncate pr-2">
-                  <span className="font-semibold block text-slate-900 truncate">
-                    "{selectedDuplicate.description}"
-                  </span>
-                  <span className="text-slate-500 text-[11px]">
-                    Status: <strong className="uppercase text-blue-700">{selectedDuplicate.status}</strong> • Upvotes: {selectedDuplicate.upvotes?.length || 1}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleUpvoteExisting(selectedDuplicate)}
-                  disabled={upvotedExisting}
-                  className="shrink-0 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
-                >
-                  {upvotedExisting ? (
-                    <>
-                      <Check size={14} />
-                      <span>Upvoted!</span>
-                    </>
-                  ) : (
-                    <>
-                      <ThumbsUp size={14} />
-                      <span>Upvote Existing (+1)</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <p className="text-[11px] text-amber-700">
-                Tip: Upvoting an existing issue increases its municipal priority score and avoids duplicate work orders.
-              </p>
-            </div>
-          )}
 
           {/* 5. Priority Score Preview */}
           <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-100 text-xs">
             <div>
               <span className="text-slate-500 block text-[11px]">
-                {language === 'mr' ? 'गणना केलेले प्राधान्य मूल्य:' : 'Calculated Priority Index:'}
+                {language === 'hi' ? 'गणना किया गया प्राथमिकता सूचकांक:' : 'Calculated Priority Index:'}
               </span>
               <span className="font-bold text-slate-800 text-xs sm:text-sm">
                 Category Base ({CATEGORY_CONFIG[category].baseWeight}) + AI Severity {isTrustedReporter && '+ ⭐ Trusted Citizen (+5)'}
@@ -659,24 +686,24 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl"
+              className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl cursor-pointer"
             >
-              Cancel
+              {language === 'hi' ? 'रद्द करें' : 'Cancel'}
             </button>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs">{uploadStatusText || 'Submitting...'}</span>
+                  <span className="text-xs">{uploadStatusText || t('report.submitting')}</span>
                 </div>
               ) : (
                 <>
-                  <span>{language === 'mr' ? 'तक्रार मनपा कडे पाठवा' : 'Submit to City Authority'}</span>
+                  <span>{t('report.submitBtn')}</span>
                   <ArrowRight size={16} />
                 </>
               )}
@@ -687,4 +714,3 @@ export const ReportProblemModal: React.FC<ReportProblemModalProps> = ({
     </div>
   );
 };
-

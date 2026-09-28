@@ -27,6 +27,7 @@ function MainApp() {
     newCitizenIdCelebration,
     dismissCitizenIdCelebration
   } = useAuth();
+  const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<'feed' | 'map' | 'citizen-dash' | 'admin-dash' | 'analytics'>('feed');
   const [allComplaints, setAllComplaints] = useState<Complaint[]>(getInitialSampleComplaints());
@@ -89,6 +90,13 @@ function MainApp() {
     setActiveTab('citizen-dash');
   };
 
+  // If a normal user tries to access the Owner Dashboard: deny access & redirect to Owner Login
+  useEffect(() => {
+    if (activeTab === 'admin-dash' && !isAdmin) {
+      setIsAdminAuthOpen(true);
+    }
+  }, [activeTab, isAdmin]);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-[Inter,sans-serif] text-slate-900">
       
@@ -129,15 +137,15 @@ function MainApp() {
               <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
                 <Shield size={24} />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Citizen Sign In Required</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t('dash.signInRequired')}</h2>
               <p className="text-xs text-slate-500">
-                Sign in or register with Google to view your submitted complaints, track progress milestones, and confirm municipal remediation.
+                {t('dash.signInDesc')}
               </p>
               <button
                 onClick={() => handleOpenCitizenAuth('signin')}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
               >
-                Sign In to Citizen Dashboard
+                {t('dash.signInBtn')}
               </button>
             </div>
           )
@@ -153,15 +161,15 @@ function MainApp() {
               <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto border border-red-500/30">
                 <Building2 size={24} />
               </div>
-              <h2 className="text-xl font-bold text-white">Restricted Administrator Area</h2>
+              <h2 className="text-xl font-bold text-white">{t('auth.restrictedTitle')}</h2>
               <p className="text-xs text-slate-400">
-                This console is reserved for municipal authority officers and department supervisors with verified Firestore roles.
+                {t('auth.restrictedDesc')}
               </p>
               <button
                 onClick={handleOpenAdminAuth}
-                className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
               >
-                Open Owner / Admin Authentication
+                {t('auth.openOwnerLogin')}
               </button>
             </div>
           )
@@ -214,7 +222,7 @@ function MainApp() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
-            <span>Powered by Gemini 2.5 & Firestore</span>
+            <span>Powered by Gemini 3.8 & Firestore</span>
             <span>•</span>
             <button
               onClick={handleOpenAdminAuth}

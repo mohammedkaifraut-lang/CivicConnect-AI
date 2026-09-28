@@ -117,7 +117,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                 {/* Citizen Trust Score Badge (FEATURE 5) */}
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
                   <Star size={13} className="text-amber-400 fill-amber-400" />
-                  <span>{trustScore >= 80 ? (language === 'mr' ? 'विश्वासू नागरिक (Trusted Reporter)' : '⭐ Trusted Reporter') : (language === 'mr' ? 'प्रमाणित नागरिक' : 'Verified Reporter')}</span>
+                  <span>{trustScore >= 80 ? t('common.trustedReporter') : (language === 'hi' ? 'सत्यापित रिपोर्टर' : language === 'mr' ? 'प्रमाणित नागरिक' : 'Verified Reporter')}</span>
                 </span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">{userProfile?.email}</p>
@@ -125,7 +125,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">
                   <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                    Citizen ID:
+                    {t('nav.citizenId')}:
                   </span>
                   <span className="font-mono font-bold text-amber-400 text-xs sm:text-sm tracking-widest">
                     {userProfile?.citizenId || 'QLMT4821'}
@@ -135,7 +135,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                 {/* Trust Score Indicator */}
                 <div className="inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">
                   <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                    {language === 'mr' ? 'विश्वास गुण (Trust Score):' : 'Trust Score:'}
+                    {t('common.trustScore')}:
                   </span>
                   <span className="font-mono font-bold text-emerald-400 text-xs sm:text-sm">
                     {trustScore}/100
@@ -148,7 +148,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenReportModal}
-              className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg hover:shadow-blue-600/30 transition-all flex items-center gap-2"
+              className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg hover:shadow-blue-600/30 transition-all flex items-center gap-2 cursor-pointer"
             >
               <PlusCircle size={18} />
               <span>{t('hero.reportBtn')}</span>
@@ -160,25 +160,25 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800">
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
             <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
-              {language === 'mr' ? 'दाखल केलेल्या तक्रारी' : 'Submitted'}
+              {t('dash.submitted')}
             </span>
             <span className="text-2xl font-bold text-white">{totalSubmitted}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
             <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
-              {language === 'mr' ? 'प्रगतीपथावर' : 'In Progress'}
+              {t('dash.inProgress')}
             </span>
             <span className="text-2xl font-bold text-amber-400">{totalActive}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
             <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
-              {language === 'mr' ? 'निवारण झालेल्या' : 'Resolved'}
+              {t('dash.resolved')}
             </span>
             <span className="text-2xl font-bold text-emerald-400">{totalResolved}</span>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/50">
             <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
-              {language === 'mr' ? 'नागरिक समर्थन (Upvotes)' : 'Community Upvotes'}
+              {t('common.upvotes')}
             </span>
             <span className="text-2xl font-bold text-sky-400">{totalUpvotesReceived}</span>
           </div>
@@ -193,10 +193,10 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <div>
               <h2 className="font-bold text-slate-900 text-lg">
-                {language === 'mr' ? 'माझ्या तक्रारींची यादी' : 'My Submitted Complaints'}
+                {t('dash.mySubmitted')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'mr' ? 'थेट महानगरपालिका प्रगती व निवारण स्थिती' : 'Live municipal tracking with status timelines'}
+                {t('dash.liveTracking')}
               </p>
             </div>
 

@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 620" width="100%" height="100%">
+  <defs>
+    <!-- Background Night Atmosphere -->
+    <radialGradient id="skyGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#4a0e17" stop-opacity="1" />
+      <stop offset="35%" stop-color="#2a050b" stop-opacity="1" />
+      <stop offset="70%" stop-color="#120205" stop-opacity="1" />
+      <stop offset="100%" stop-color="#070102" stop-opacity="1" />
+    </radialGradient>
+
+    <!-- Outer Electrical Fire Aura -->
+    <radialGradient id="outerFire" cx="50%" cy="28%" r="48%">
+      <stop offset="0%" stop-color="#ff3d00" stop-opacity="0.95" />
+      <stop offset="25%" stop-color="#e91e63" stop-opacity="0.8" />
+      <stop offset="55%" stop-color="#d81b60" stop-opacity="0.45" />
+      <stop offset="85%" stop-color="#880e4f" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Core Arc Flash Explosion -->
+    <radialGradient id="coreFlash" cx="50%" cy="25%" r="32%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="15%" stop-color="#fff9c4" stop-opacity="0.98" />
+      <stop offset="35%" stop-color="#ffe082" stop-opacity="0.95" />
+      <stop offset="60%" stop-color="#ff9100" stop-opacity="0.85" />
+      <stop offset="85%" stop-color="#ff3d00" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#c2185b" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Ground Ambient Reflection -->
+    <radialGradient id="groundGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#bf360c" stop-opacity="0.75" />
+      <stop offset="30%" stop-color="#870000" stop-opacity="0.55" />
+      <stop offset="65%" stop-color="#3e0708" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#140305" stop-opacity="0.95" />
+    </radialGradient>
+
+    <!-- Filters for Glow and Blur -->
+    <filter id="megaGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18" result="blur1" />
+      <feGaussianBlur stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="textShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <!-- Base Night Sky -->
+  <rect width="500" height="620" fill="url(#skyGlow)" />
+
+  <!-- Background Silhouettes of Power Infrastructure -->
+  <g opacity="0.35">
+    <line x1="30" y1="40" x2="160" y2="120" stroke="#ff7043" stroke-width="2.5" />
+    <line x1="470" y1="30" x2="340" y2="115" stroke="#ff7043" stroke-width="2.5" />
+    <path d="M 120 180 L 140 100 L 160 180" stroke="#5d101d" stroke-width="4" fill="none" />
+    <path d="M 340 180 L 360 95 L 380 180" stroke="#5d101d" stroke-width="4" fill="none" />
+  </g>
+
+  <!-- Big Fireball / Plasma Dispersion Flare -->
+  <circle cx="260" cy="155" r="190" fill="url(#outerFire)" filter="url(#megaGlow)" />
+  <ellipse cx="255" cy="145" rx="140" ry="90" fill="url(#coreFlash)" filter="url(#megaGlow)" />
+  <ellipse cx="250" cy="140" rx="90" ry="50" fill="#ffffff" opacity="0.95" filter="url(#megaGlow)" />
+
+  <!-- Plasma Sparks & Arc Lightning Tendrils -->
+  <g stroke="#ffffff" stroke-width="3" fill="none" filter="url(#softGlow)" opacity="0.9">
+    <path d="M 245 135 Q 210 105 180 80 Q 150 65 110 50" />
+    <path d="M 265 130 Q 315 95 365 75 Q 405 60 450 55" />
+    <path d="M 240 145 Q 220 180 190 200 Q 150 220 120 230" stroke="#ffe082" stroke-width="3.5" />
+    <path d="M 270 145 Q 295 185 335 210 Q 380 235 410 245" stroke="#ffe082" stroke-width="3.5" />
+    <path d="M 255 155 Q 250 200 230 240 Q 210 280 170 310" stroke="#ff8a80" stroke-width="2.5" />
+  </g>
+
+  <!-- Ruptured 11kV Conductor Cable (Curving Down to Ground) -->
+  <g filter="url(#softGlow)">
+    <!-- Main thick snapping cable arching across scene -->
+    <path d="M 260 140 Q 230 200 175 270 Q 165 315 170 340 Q 185 365 240 370 Q 310 375 350 340 Q 360 305 350 280 Q 320 230 270 160"
+          fill="none" stroke="#210505" stroke-width="9" stroke-linecap="round" />
+    <!-- Cable illuminated edge -->
+    <path d="M 260 140 Q 230 200 175 270 Q 165 315 170 340 Q 185 365 240 370 Q 310 375 350 340 Q 360 305 350 280 Q 320 230 270 160"
+          fill="none" stroke="#ffab40" stroke-width="3" stroke-linecap="round" />
+    <path d="M 260 140 Q 230 200 175 270 Q 165 315 170 340"
+          fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Ground Terrain & Burning Asphalt Debris -->
+  <path d="M 0 320 Q 120 290 250 305 Q 380 320 500 295 L 500 620 L 0 620 Z" fill="url(#groundGlow)" />
+
+  <!-- Molten Electrical Slag and Fire Hotspots on Ground -->
+  <g filter="url(#megaGlow)">
+    <ellipse cx="250" cy="335" rx="130" ry="35" fill="#ff3d00" opacity="0.8" />
+    <ellipse cx="250" cy="335" rx="80" ry="20" fill="#ffab00" opacity="0.9" />
+    <ellipse cx="250" cy="335" rx="45" ry="10" fill="#ffff8d" opacity="0.95" />
+    <ellipse cx="180" cy="350" rx="35" ry="12" fill="#ff6e40" opacity="0.85" />
+    <ellipse cx="320" cy="345" rx="40" ry="14" fill="#ff6e40" opacity="0.85" />
+  </g>
+
+  <!-- Rubble, Stones and Rocky Texture on Foreground -->
+  <g fill="#210508" stroke="#ff3d00" stroke-width="0.8" opacity="0.9">
+    <!-- Rock clusters -->
+    <path d="M 40 430 Q 70 410 95 435 Q 110 460 70 470 Q 40 460 40 430 Z" />
+    <path d="M 120 400 Q 145 385 165 405 Q 175 425 145 435 Q 115 425 120 400 Z" />
+    <path d="M 190 440 Q 220 420 245 440 Q 255 465 225 480 Q 185 470 190 440 Z" />
+    <path d="M 280 415 Q 315 395 340 420 Q 355 445 315 460 Q 275 445 280 415 Z" />
+    <path d="M 370 435 Q 405 415 435 440 Q 450 470 405 485 Q 365 470 370 435 Z" />
+    <path d="M 80 500 Q 115 480 145 505 Q 155 535 115 545 Q 75 535 80 500 Z" />
+    <path d="M 220 515 Q 260 495 295 520 Q 305 550 260 565 Q 210 550 220 515 Z" />
+    <path d="M 350 510 Q 390 490 425 515 Q 440 545 390 560 Q 345 545 350 510 Z" />
+  </g>
+
+  <!-- Scattered High Voltage Glowing Sparks -->
+  <g fill="#fff59d" filter="url(#softGlow)">
+    <circle cx="120" cy="160" r="3.5" />
+    <circle cx="150" cy="130" r="2.5" />
+    <circle cx="190" cy="110" r="4" fill="#ffffff" />
+    <circle cx="210" cy="80" r="2" />
+    <circle cx="310" cy="90" r="3.5" fill="#ffffff" />
+    <circle cx="340" cy="120" r="2" />
+    <circle cx="380" cy="150" r="4" />
+    <circle cx="140" cy="240" r="3" />
+    <circle cx="210" cy="270" r="4.5" fill="#ffffff" />
+    <circle cx="290" cy="265" r="3" />
+    <circle cx="380" cy="250" r="3.5" />
+    <circle cx="160" cy="360" r="2.5" fill="#ffab40" />
+    <circle cx="270" cy="380" r="3" fill="#ffab40" />
+    <circle cx="340" cy="370" r="2.5" fill="#ffab40" />
+    <circle cx="90" cy="380" r="2" />
+    <circle cx="430" cy="360" r="2.5" />
+    <circle cx="410" cy="290" r="3" />
+  </g>
+
+  <!-- Smoke and Heat Haze Overlay -->
+  <path d="M 160 140 Q 200 70 260 50 Q 330 70 370 130 Q 340 190 280 180 Q 200 190 160 140 Z"
+        fill="#ff1744" opacity="0.18" filter="url(#megaGlow)" />
+
+  <!-- Iconic Text Caption from User Picture: "11kv wire blast" -->
+  <g filter="url(#textShadow)">
+    <text x="250" y="475"
+          text-anchor="middle"
+          font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-weight="900"
+          font-size="34"
+          fill="#ffca28"
+          stroke="#5d101d"
+          stroke-width="1.2"
+          letter-spacing="0.5px">
+      11kv wire blast
+    </text>
+  </g>
+
+  <!-- Vignette Border Shadow -->
+  <rect width="500" height="620" fill="none" stroke="#000000" stroke-width="16" opacity="0.65" />
+</svg>

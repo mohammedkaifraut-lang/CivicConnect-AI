@@ -4,6 +4,122 @@ import type { Complaint } from '../types';
 
 export const SAMPLE_INITIAL_COMPLAINTS: (Omit<Complaint, 'complaintId'> & { complaintId?: string })[] = [
   {
+    complaintId: 'seed-electric-wire-01',
+    reportedBy: 'seed-citizen-99',
+    reporterName: 'Devendra Patil',
+    reporterCitizenId: 'ELEC9102',
+    category: 'streetlight',
+    ward: 'Ward B',
+    description: '🚨 CRITICAL EMERGENCY: High-tension 11kV overhead electric wire snapped and bursting with violent explosive arcing and sparks across Chinchwad Station Road, threatening pedestrians and stopped vehicles.',
+    photoUrl: '/11kv_wire_blast.svg',
+    location: {
+      lat: 18.6308,
+      lng: 73.7865,
+      address: 'Chinchwad Station Road, Opp. Mahavir Garden & Auto Stand',
+      city: 'PCMC Metro',
+      ward: 'Ward B'
+    },
+    aiClassification: {
+      label: 'streetlight',
+      confidence: 0.99,
+      aiDescription: 'CRITICAL LIFE-SAFETY HAZARD: High-voltage overhead electrical feeder conductor ruptured and actively discharging heavy electrical arcs onto roadway. Imminent danger of electrocution, fire outbreak, and transformer explosion.',
+      severity: 'critical',
+      tags: ['electric-wire-burst', 'live-arcing-wire', 'high-voltage-hazard', 'electrocution-risk', 'emergency-dispatch'],
+      suggestedDepartment: 'Electrical Engineering & Street Lighting'
+    },
+    priorityScore: 99,
+    status: 'in_progress',
+    assignedDepartment: 'Electrical Engineering & Street Lighting',
+    adminRemarks: '🚨 SQUAD ON-SITE: Lineman rapid response unit dispatched. Substation feeder #4 isolated to prevent electrocution.',
+    upvotes: ['seed-citizen-1', 'seed-citizen-2', 'seed-citizen-3', 'seed-citizen-4', 'seed-citizen-5', 'seed-citizen-7', 'seed-citizen-8'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), remarks: 'Emergency 11kV wire bursting report logged by citizen ELEC9102' },
+      { status: 'verified', timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(), remarks: 'Municipal emergency hotline & police dispatch confirmed active electrical arcing' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), remarks: 'Immediate Priority 1 work order issued to Emergency Electrical Rapid Unit' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), remarks: 'Feeder isolated; bucket truck and certified linemen securing live wire' }
+    ]
+  },
+  {
+    complaintId: 'seed-water-burst-02',
+    reportedBy: 'seed-citizen-98',
+    reporterName: 'Pooja Sharma',
+    reporterCitizenId: 'WATR6631',
+    category: 'water_leak',
+    ward: 'Ward A',
+    description: '🚨 MAJOR PIPELINE EXPLOSION: High-pressure 24-inch municipal main water supply pipeline burst through road surface with geyser force, fracturing asphalt and submerging 300 meters of Spine Road.',
+    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.6542,
+      lng: 73.7715,
+      address: 'Spine Road Near Sector 24 Water Reservoir Junction',
+      city: 'PCMC Metro',
+      ward: 'Ward A'
+    },
+    aiClassification: {
+      label: 'water_leak',
+      confidence: 0.98,
+      aiDescription: 'CRITICAL INFRASTRUCTURE COLLAPSE: High-volume trunk main blowout causing rapid road sub-base erosion, vehicle stranding, and municipal water supply cutoff.',
+      severity: 'critical',
+      tags: ['water-main-burst', 'catastrophic-leak', 'flooding-emergency', 'sub-base-erosion'],
+      suggestedDepartment: 'Municipal Water & Sewerage Board'
+    },
+    priorityScore: 97,
+    status: 'in_progress',
+    assignedDepartment: 'Municipal Water & Sewerage Board',
+    adminRemarks: 'Mainline control sluice gates shut down. Heavy excavation equipment and industrial sump pumps deployed on-site.',
+    upvotes: ['seed-citizen-2', 'seed-citizen-3', 'seed-citizen-6', 'seed-citizen-8', 'seed-citizen-9'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(), remarks: 'Citizen report of water fountain bursting through road' },
+      { status: 'verified', timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(), remarks: 'Water board SCADA pressure sensor alerted sudden drop; field team confirmed breach' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), remarks: 'Emergency pipeline squad dispatched with backhoe loader' },
+      { status: 'in_progress', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), remarks: 'Isolation valves closed; road de-watering and pipe replacement ongoing' }
+    ]
+  },
+  {
+    complaintId: 'seed-sinkhole-03',
+    reportedBy: 'seed-citizen-97',
+    reporterName: 'Ramesh Kulkarni',
+    reporterCitizenId: 'ROAD4491',
+    category: 'pothole',
+    ward: 'Ward D',
+    description: '🚨 CATASTROPHIC ROAD CAVE-IN: Massive 12-foot deep sinkhole crater opened suddenly across two lanes of Wakad Flyover Approach Road following underground storm culvert shear.',
+    photoUrl: 'https://images.unsplash.com/photo-1578983427937-26078ee3d9d3?auto=format&fit=crop&w=800&q=80',
+    location: {
+      lat: 18.5992,
+      lng: 73.7665,
+      address: 'Wakad Flyover Approach, Near Dange Chowk Connector',
+      city: 'PCMC Metro',
+      ward: 'Ward D'
+    },
+    aiClassification: {
+      label: 'pothole',
+      confidence: 0.99,
+      aiDescription: 'STRUCTURAL COLLAPSE HAZARD: Deep subterranean void formation and severe shear failure endangering all approaching vehicles and mass transit.',
+      severity: 'critical',
+      tags: ['massive-sinkhole', 'road-cave-in', 'structural-collapse', 'traffic-hazard'],
+      suggestedDepartment: 'Public Works & Road Infrastructure'
+    },
+    priorityScore: 95,
+    status: 'assigned',
+    assignedDepartment: 'Public Works & Road Infrastructure',
+    adminRemarks: 'Traffic police diverted approach corridor. Structural engineering division deploying soil-compaction and precast culvert shoring.',
+    upvotes: ['seed-citizen-1', 'seed-citizen-4', 'seed-citizen-7', 'seed-citizen-10'],
+    citizenConfirmedResolution: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+    statusTimeline: [
+      { status: 'reported', timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(), remarks: 'Emergency report logged by transit driver' },
+      { status: 'verified', timestamp: new Date(Date.now() - 1000 * 60 * 140).toISOString(), remarks: 'Municipal civil engineer measured 3.6m cavity' },
+      { status: 'assigned', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), remarks: 'Special infrastructure rescue squad assigned' }
+    ]
+  },
+  {
     complaintId: 'seed-pothole-01',
     reportedBy: 'seed-citizen-1',
     reporterName: 'Mohammed Kaif',
@@ -367,12 +483,34 @@ export function getInitialSampleComplaints(): Complaint[] {
 export async function seedInitialDataIfEmpty(): Promise<boolean> {
   try {
     const snap = await getDocs(collection(db, 'complaints'));
-    if (snap.empty && auth.currentUser) {
-      for (const comp of SAMPLE_INITIAL_COMPLAINTS) {
-        const { complaintId: _id, ...cleanComp } = comp;
-        await addDoc(collection(db, 'complaints'), cleanComp);
+    if (auth.currentUser) {
+      if (snap.empty) {
+        for (const comp of SAMPLE_INITIAL_COMPLAINTS) {
+          const { complaintId: _id, ...cleanComp } = comp;
+          await addDoc(collection(db, 'complaints'), cleanComp);
+        }
+        return true;
+      } else {
+        // If complaints exist but electric wire bursting is missing, seed the critical emergencies
+        const hasElectricWire = snap.docs.some(doc => {
+          const d = doc.data();
+          const desc = (d.description || '').toLowerCase();
+          return desc.includes('electric wire') || desc.includes('wire bursting') || doc.id === 'seed-electric-wire-01';
+        });
+
+        if (!hasElectricWire) {
+          const criticalSeeds = SAMPLE_INITIAL_COMPLAINTS.filter(c =>
+            c.complaintId === 'seed-electric-wire-01' ||
+            c.complaintId === 'seed-water-burst-02' ||
+            c.complaintId === 'seed-sinkhole-03'
+          );
+          for (const comp of criticalSeeds) {
+            const { complaintId: _id, ...cleanComp } = comp;
+            await addDoc(collection(db, 'complaints'), cleanComp);
+          }
+          return true;
+        }
       }
-      return true;
     }
     return false;
   } catch (err) {

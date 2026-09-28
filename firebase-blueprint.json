@@ -2,23 +2,29 @@
   "entities": {
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile with role management and unique Citizen ID",
+      "description": "User profile with role management, premium status, and unique Citizen ID",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "citizenId": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string" },
-        "role": { "type": "string", "enum": ["citizen", "admin", "department_head"] },
+        "role": { "type": "string", "enum": ["citizen", "admin", "owner", "department_head"] },
         "department": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "blocked", "pending"] },
+        "isBlocked": { "type": "boolean" },
+        "premiumStatus": { "type": "string", "enum": ["free", "premium"] },
+        "downloadsRemaining": { "type": "number" },
+        "accountStatus": { "type": "string", "enum": ["approved", "pending", "blocked"] },
         "createdAt": { "type": "string" },
-        "avatarUrl": { "type": "string" }
+        "avatarUrl": { "type": "string" },
+        "trustScore": { "type": "number" }
       },
       "required": ["uid", "name", "email", "role"]
     },
     "Complaint": {
       "title": "Complaint",
-      "description": "Citizen reported civic issue with AI classification and remediation lifecycle",
+      "description": "Citizen reported civic issue with multilingual text, AI classification, priority engine, and resolution lifecycle",
       "type": "object",
       "properties": {
         "complaintId": { "type": "string" },
@@ -27,12 +33,18 @@
         "reporterCitizenId": { "type": "string" },
         "category": { "type": "string" },
         "description": { "type": "string" },
+        "originalText": { "type": "string" },
+        "language": { "type": "string" },
+        "standardizedText": { "type": "string" },
         "photoUrl": { "type": "string" },
         "resolvedPhotoUrl": { "type": "string" },
         "priorityScore": { "type": "number" },
+        "priorityLevel": { "type": "string" },
         "status": { "type": "string" },
         "assignedDepartment": { "type": "string" },
         "adminRemarks": { "type": "string" },
+        "isRecurring": { "type": "boolean" },
+        "duplicateClusterId": { "type": "string" },
         "citizenConfirmedResolution": { "type": "boolean" },
         "citizenFeedbackNotes": { "type": "string" },
         "createdAt": { "type": "string" },
@@ -40,6 +52,40 @@
         "resolvedAt": { "type": "string" }
       },
       "required": ["reportedBy", "category", "description", "photoUrl", "status"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Subscription and priority pass payments submitted with UPI transaction ID",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "paymentPlan": { "type": "string" },
+        "amount": { "type": "number" },
+        "upiTransactionId": { "type": "string" },
+        "paymentScreenshotUrl": { "type": "string" },
+        "submissionDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["userId", "userEmail", "paymentPlan", "upiTransactionId", "status"]
+    },
+    "UserMessage": {
+      "title": "UserMessage",
+      "description": "Messages and inquiries submitted by citizens to municipal authorities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "message": { "type": "string" },
+        "subject": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["unread", "read", "resolved", "pending"] }
+      },
+      "required": ["userId", "userEmail", "message", "status"]
     }
   },
   "firestore": {
@@ -50,6 +96,14 @@
     "/complaints/{complaintId}": {
       "schema": "Complaint",
       "description": "Citywide civic issues, work orders, and resolution records"
+    },
+    "/payments/{paymentId}": {
+      "schema": "PaymentRecord",
+      "description": "Citizen payment receipts and premium plan approvals"
+    },
+    "/messages/{messageId}": {
+      "schema": "UserMessage",
+      "description": "User inquiries and feedback to municipal administrators"
     }
   }
 }

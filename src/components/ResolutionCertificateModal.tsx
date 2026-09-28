@@ -46,7 +46,9 @@ export const ResolutionCertificateModal: React.FC<ResolutionCertificateModalProp
   const diffHours = Math.max(1, Math.round((resolvedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60)));
   const diffDays = (diffHours / 24).toFixed(1);
   const resolutionDurationStr = diffHours < 24 ? `${diffHours} Hours` : `${diffDays} Days`;
+  const resolutionDurationHindi = diffHours < 24 ? `${diffHours} घंटे` : `${diffDays} दिन`;
   const resolutionDurationMarathi = diffHours < 24 ? `${diffHours} तास` : `${diffDays} दिवस`;
+  const formattedDuration = language === 'hi' ? resolutionDurationHindi : language === 'mr' ? resolutionDurationMarathi : resolutionDurationStr;
 
   const certId = `CERT-PCMC-${(complaint.complaintId || 'RESOLVED').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-8)}`;
 
@@ -198,7 +200,7 @@ export const ResolutionCertificateModal: React.FC<ResolutionCertificateModalProp
                 <span className="text-[10px] text-emerald-400 block font-semibold uppercase">Resolution Time</span>
                 <div className="font-bold text-emerald-400 flex items-center gap-1">
                   <Clock size={12} />
-                  <span>{language === 'mr' ? resolutionDurationMarathi : resolutionDurationStr}</span>
+                  <span>{formattedDuration}</span>
                 </div>
               </div>
             </div>

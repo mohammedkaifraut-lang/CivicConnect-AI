@@ -135,27 +135,28 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right Action & Authentication Area */}
           <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* Language Toggle Button: EN / मराठी */}
+            {/* Language Selector: English | हिंदी */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-semibold">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-2 py-1 rounded-lg transition-all text-[11px] ${
+                className={`px-2.5 py-1 rounded-lg transition-all text-[11px] ${
                   language === 'en'
                     ? 'bg-white text-blue-700 font-bold shadow-xs'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                EN
+                English
               </button>
+              <span className="text-slate-300 text-[10px] select-none">|</span>
               <button
-                onClick={() => setLanguage('mr')}
-                className={`px-2 py-1 rounded-lg transition-all text-[11px] ${
-                  language === 'mr'
+                onClick={() => setLanguage('hi')}
+                className={`px-2.5 py-1 rounded-lg transition-all text-[11px] ${
+                  language === 'hi'
                     ? 'bg-blue-600 text-white font-bold shadow-xs'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                मराठी
+                हिंदी
               </button>
             </div>
 
@@ -172,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <PlusCircle size={15} />
               <span className="hidden sm:inline">{t('nav.reportProblem')}</span>
-              <span className="sm:hidden">Report</span>
+              <span className="sm:hidden">{t('nav.reportProblem')}</span>
             </button>
 
             {/* If NOT logged in: Two distinct entry points */}
@@ -186,15 +187,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {t('nav.userLogin')}
                 </button>
 
-                {/* 2. Owner/Admin Login (Secondary / Outlined / Restricted) */}
+                {/* 2. Owner/Admin Login (Separate / Outlined / Restricted) */}
                 <button
                   onClick={onOpenAdminAuth}
-                  title="Restricted access for municipal administrators"
+                  title="Restricted access for municipal administrators and owner"
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-slate-800 hover:bg-slate-50 text-slate-700 text-[11px] font-medium transition-all"
                 >
                   <Lock size={12} className="text-slate-500" />
-                  <span className="hidden lg:inline">{t('nav.ownerLogin')}</span>
-                  <span className="lg:hidden">{t('nav.admin')}</span>
+                  <span className="hidden sm:inline">{t('nav.ownerLogin')}</span>
+                  <span className="sm:hidden">{t('nav.admin')}</span>
                 </button>
               </div>
             ) : (

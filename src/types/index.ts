@@ -156,6 +156,22 @@ export interface ComplaintLocation {
   ward?: WardId;
 }
 
+export interface PotholeAnalysis {
+  isPothole: boolean;
+  estimatedDepth?: string; // e.g. "6-10 cm deep crater"
+  rimSeverity?: 'low' | 'moderate' | 'high' | 'critical';
+  roadSurfaceType?: string; // e.g. "Asphalt / Bitumen Road"
+  trafficHazard?: string; // e.g. "High vehicular suspension & two-wheeler skid hazard"
+}
+
+export interface MultiPersonCorrelation {
+  isMultiPersonIssue: boolean;
+  matchedComplaintId?: string;
+  differentPersonCount: number;
+  distinctCitizenIds?: string[];
+  correlationNotes?: string;
+}
+
 export interface AIClassification {
   label: ComplaintCategory;
   confidence: number; // 0.0 - 1.0
@@ -163,6 +179,8 @@ export interface AIClassification {
   severity?: 'low' | 'medium' | 'high' | 'critical';
   tags?: string[];
   suggestedDepartment?: string;
+  potholeAnalysis?: PotholeAnalysis;
+  multiPersonCorrelation?: MultiPersonCorrelation;
 }
 
 export interface StatusTimelineEvent {

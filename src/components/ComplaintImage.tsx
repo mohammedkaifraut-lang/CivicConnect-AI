@@ -3,6 +3,8 @@ import type { ComplaintCategory, ComplaintStatus } from '../types';
 import { CATEGORY_CONFIG, STATUS_CONFIG } from '../types';
 import { ImageOff, Sparkles } from 'lucide-react';
 
+export const WIRE_BLAST_PHOTO = '/11kv_wire_blast.svg';
+
 export const CATEGORY_FALLBACK_PHOTOS: Record<ComplaintCategory, string> = {
   pothole: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
   garbage: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
@@ -33,7 +35,16 @@ export const ComplaintImage: React.FC<ComplaintImageProps> = ({
   showBadges = true
 }) => {
   const fallbackUrl = CATEGORY_FALLBACK_PHOTOS[category] || CATEGORY_FALLBACK_PHOTOS.pothole;
-  const initialSrc = src && src.trim().length > 0 ? src : fallbackUrl;
+  
+  // Detect if this image is for the 11kV wire blast
+  const isWireBlast = (alt || '').toLowerCase().includes('wire') || 
+                      (alt || '').toLowerCase().includes('11kv') ||
+                      (src || '').toLowerCase().includes('11kv') ||
+                      (src || '').includes('1509391365360');
+
+  const initialSrc = isWireBlast 
+    ? WIRE_BLAST_PHOTO 
+    : (src && src.trim().length > 0 ? src : fallbackUrl);
   
   const [imgSrc, setImgSrc] = useState<string>(initialSrc);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -41,14 +52,18 @@ export const ComplaintImage: React.FC<ComplaintImageProps> = ({
 
   // If the src prop changes dynamically, update
   React.useEffect(() => {
-    if (src && src.trim().length > 0) {
+    if (isWireBlast) {
+      setImgSrc(WIRE_BLAST_PHOTO);
+      setHasError(false);
+      setIsLoading(false);
+    } else if (src && src.trim().length > 0) {
       setImgSrc(src);
       setHasError(false);
       setIsLoading(true);
     } else {
       setImgSrc(fallbackUrl);
     }
-  }, [src, fallbackUrl]);
+  }, [src, fallbackUrl, isWireBlast]);
 
   const handleImageError = () => {
     if (!hasError) {

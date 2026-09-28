@@ -9,7 +9,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, googleProvider, generateCitizenId } from '../lib/firebase';
+import { auth, db, googleProvider, generateCitizenId, sanitizeForFirestore } from '../lib/firebase';
 import type { UserProfile, UserRole } from '../types';
 
 interface AuthContextType {
@@ -23,6 +23,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<string>;
   signInWithGoogle: () => Promise<void>;
+  signInOwnerWithEmail: (email: string, pass: string) => Promise<void>;
   signInAdminWithEmail: (email: string, pass: string) => Promise<void>;
   signInAdminWithGoogle: () => Promise<void>;
   signInAsDemoAdmin: () => Promise<void>;
@@ -32,8 +33,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Recognized initial municipal admins
+// Recognized initial municipal admins & owners
 const ADMIN_EMAILS = [
+  'mkwebsitedeveloper@gmail.com',
   'mohammedkaifraut@gmail.com',
   'admin@civicconnect.gov',
   'officer@civicconnect.gov'
@@ -60,14 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: 'admin',
             department: data.department || 'Public Works & Municipal Oversight'
           };
-          await setDoc(userDocRef, updatedProfile, { merge: true });
+          await setDoc(userDocRef, sanitizeForFirestore(updatedProfile), { merge: true });
           setUserProfile(updatedProfile);
           return updatedProfile;
         }
         setUserProfile(data);
         return data;
       } else {
-        // Auto-create profile
+        // Auto-create profile without undefined fields
         const citizenId = isKnownAdmin ? 'ADMIN-01' : generateCitizenId();
         const newProfile: UserProfile = {
           uid: user.uid,
@@ -75,11 +77,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: user.displayName || user.email?.split('@')[0] || (isKnownAdmin ? 'Chief Municipal Officer' : 'Verified Citizen'),
           email: user.email || '',
           role: isKnownAdmin ? 'admin' : 'citizen',
-          department: isKnownAdmin ? 'Public Works & Municipal Oversight' : undefined,
           createdAt: new Date().toISOString(),
-          avatarUrl: user.photoURL || undefined
+          trustScore: 85
         };
-        await setDoc(userDocRef, newProfile);
+        if (isKnownAdmin) {
+          newProfile.department = 'Public Works & Municipal Oversight';
+        }
+        if (user.photoURL) {
+          newProfile.avatarUrl = user.photoURL;
+        }
+        await setDoc(userDocRef, sanitizeForFirestore(newProfile), { merge: true });
         setUserProfile(newProfile);
         if (!isKnownAdmin) {
           setNewCitizenIdCelebration(citizenId);
@@ -143,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const userDocRef = doc(db, 'users', userCredential.user.uid);
-    await setDoc(userDocRef, newProfile);
+    await setDoc(userDocRef, sanitizeForFirestore(newProfile), { merge: true });
     setUserProfile(newProfile);
     setNewCitizenIdCelebration(citizenId);
     return citizenId;
@@ -167,10 +174,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: user.email || 'admin@civicconnect.gov',
       role: 'admin',
       department: 'Public Works & Municipal Oversight',
-      createdAt: new Date().toISOString(),
-      avatarUrl: user.photoURL || undefined
+      createdAt: new Date().toISOString()
     };
-    await setDoc(userDocRef, adminProfile, { merge: true });
+    if (user.photoURL) {
+      adminProfile.avatarUrl = user.photoURL;
+    }
+    await setDoc(userDocRef, sanitizeForFirestore(adminProfile), { merge: true });
     setUserProfile(adminProfile);
   };
 
@@ -188,39 +197,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserProfile(demoAdminProfile);
   };
 
-  // Admin login flow: verifies credentials AND role == "admin" in Firestore
-  const signInAdminWithEmail = async (email: string, pass: string) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-      const uid = userCredential.user.uid;
-      const userDocRef = doc(db, 'users', uid);
-      let snap = await getDoc(userDocRef);
+  // Owner & Municipal Admin login flow using Firebase Auth & authorized verification
+  const signInOwnerWithEmail = async (email: string, pass: string) => {
+    const cleanEmail = email.trim();
+    const isAuthorizedOwner = ADMIN_EMAILS.includes(cleanEmail.toLowerCase());
 
-      if (!snap.exists() || snap.data()?.role !== 'admin') {
-        const adminProfile: UserProfile = {
-          uid,
-          citizenId: 'ADMIN-01',
-          name: 'Chief Municipal Officer',
-          email,
-          role: 'admin',
-          department: 'Public Works & Municipal Oversight',
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(userDocRef, adminProfile, { merge: true });
-        snap = await getDoc(userDocRef);
+    try {
+      // 1. Authenticate with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, pass);
+      const user = userCredential.user;
+      const userDocRef = doc(db, 'users', user.uid);
+      
+      // Enforce Owner/Admin RBAC authorization
+      if (!isAuthorizedOwner) {
+        await fbSignOut(auth);
+        setUserProfile(null);
+        setCurrentUser(null);
+        throw new Error('Access Denied: This account is not authorized as a municipal owner or administrator.');
       }
 
-      const profile = snap.data() as UserProfile;
-      setUserProfile(profile);
+      const adminProfile: UserProfile = {
+        uid: user.uid,
+        citizenId: 'OWNER-01',
+        name: user.displayName || (cleanEmail.includes('kaif') ? 'Chief Municipal Officer (Kaif Raut)' : 'Municipal System Owner'),
+        email: cleanEmail,
+        role: 'admin',
+        department: 'Public Works & Municipal Oversight',
+        createdAt: new Date().toISOString()
+      };
+      if (user.photoURL) {
+        adminProfile.avatarUrl = user.photoURL;
+      }
+
+      await setDoc(userDocRef, sanitizeForFirestore(adminProfile), { merge: true });
+      setUserProfile(adminProfile);
     } catch (err: any) {
-      if (err.code === 'auth/operation-not-allowed') {
-        // If email password auth is disabled in Firebase console, allow demo elevation
-        await signInAsDemoAdmin();
-        return;
+      // 2. If Firebase Email/Password auth is disabled or restricted in this environment,
+      // safely verify via server-side owner authentication without exposing credentials in frontend
+      if (
+        err.code === 'auth/operation-not-allowed' ||
+        err.code === 'auth/user-not-found' ||
+        err.code === 'auth/invalid-credential' ||
+        err.code === 'auth/invalid-login-credentials'
+      ) {
+        try {
+          const res = await fetch('/api/owner-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password: pass })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success && data.user) {
+            const ownerProfile: UserProfile = {
+              uid: data.user.uid,
+              citizenId: data.user.citizenId || 'OWNER-01',
+              name: data.user.name || 'Chief Municipal Officer (Kaif Raut)',
+              email: data.user.email,
+              role: 'admin',
+              department: data.user.department || 'Public Works & Municipal Oversight',
+              createdAt: new Date().toISOString()
+            };
+
+            // Write to Firestore if available
+            try {
+              await setDoc(doc(db, 'users', ownerProfile.uid), sanitizeForFirestore(ownerProfile), { merge: true });
+            } catch (fsErr) {
+              console.warn('Firestore sync note:', fsErr);
+            }
+
+            setUserProfile(ownerProfile);
+            return;
+          } else {
+            throw new Error(data.error || 'Invalid municipal owner credentials.');
+          }
+        } catch (fetchErr: any) {
+          throw new Error(fetchErr.message || 'Municipal owner verification failed.');
+        }
       }
       throw err;
     }
   };
+
+  const signInAdminWithEmail = signInOwnerWithEmail;
 
   const logout = async () => {
     await fbSignOut(auth);
@@ -248,6 +307,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,
+        signInOwnerWithEmail,
         signInAdminWithEmail,
         signInAdminWithGoogle,
         signInAsDemoAdmin,

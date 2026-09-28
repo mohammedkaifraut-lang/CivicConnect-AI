@@ -42,6 +42,28 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefi
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Deep sanitization helper to strip JavaScript undefined fields so Firestore writes never fail
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined) {
+    return undefined as unknown as T;
+  }
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item)) as unknown as T;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean as T;
+}
+
 // Client-side image compression helper to keep payloads fast and lightweight
 export async function compressImage(
   fileOrBase64: File | Blob | string,
@@ -172,10 +194,11 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
 
 export async function createUserProfileDoc(profile: UserProfile): Promise<void> {
   const userRef = doc(db, 'users', profile.uid);
-  await setDoc(userRef, {
+  const cleanProfile = sanitizeForFirestore({
     ...profile,
     createdAt: profile.createdAt || new Date().toISOString()
-  }, { merge: true });
+  });
+  await setDoc(userRef, cleanProfile, { merge: true });
 }
 
 // Upvote a complaint (toggle)

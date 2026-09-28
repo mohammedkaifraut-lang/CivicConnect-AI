@@ -238,33 +238,31 @@ export const PublicMap: React.FC<PublicMapProps> = ({ complaints, onSelectCompla
           <div className="flex items-center gap-2">
             <h2 className="font-extrabold text-slate-900 text-xl flex items-center gap-2">
               <MapPin size={22} className="text-blue-600" />
-              <span>{language === 'mr' ? 'थेट शहर नकाशा व जोखीम अंदाज' : 'Public Civic Issue Map'}</span>
+              <span>{t('map.title')}</span>
             </h2>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
               AI Risk Forecast
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            {language === 'mr'
-              ? 'तक्रारींचे भौगोलिक स्थान, निवारण स्थिती व एआय आधारित संवेदनशील क्षेत्र अंदाज'
-              : 'Geospatial visualization of reported problems and automated AI predictive risk hotspots'}
+            {t('map.subtitle')}
           </p>
         </div>
 
         {/* Filters & Risk Toggle */}
         <div className="flex flex-wrap items-center gap-3">
           
-          {/* Predictive Hotspots Risk Forecast Toggle (FEATURE 4) */}
+          {/* Predictive Hotspots Risk Forecast Toggle */}
           <button
             onClick={() => setShowRiskForecast(!showRiskForecast)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
               showRiskForecast
                 ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-transparent shadow-sm'
                 : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
             }`}
           >
             <Flame size={15} className={showRiskForecast ? 'animate-pulse text-yellow-300' : 'text-slate-500'} />
-            <span>{language === 'mr' ? 'जोखीम अंदाज (Risk Forecast)' : 'Risk Forecast'}</span>
+            <span>{t('common.riskForecast')}</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/20 text-white font-mono">
               {hotspots.length}
             </span>
